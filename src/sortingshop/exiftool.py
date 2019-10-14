@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+import os
+from pathlib import Path
+import re
+path_app = Path(__file__).resolve().parent
+
+class ExifTool():
+    """A Wrapper around ExifTool-CLI.
+
+    Starts an instance of exiftool with stay_open = True, and creates a pipe in
+    and out to communicate. 
+
+    Kudos to Sven Marnach https://stackoverflow.com/questions/10075115
+    """
+
+    def __init__(self, executable=['/usr/bin/exiftool'],
+            config=path_app.joinpath('settings/exiftool_config.txt')):
+        """Set path to the executables: perl and exiftool.
+
+        Raises ValueError if `executable` is not a list.
+
+        Keyword arguments:
+        executable -- list of commands to call ExifTool executable
+                      (default: ['/usr/bin/exiftool'])
+        """
+        if not isinstance(executable, list):
+            raise ValueError('executable needs to be a list')
+        self.executable = executable
+
+        # on Windows the ready sign ends with "\r\n" instead of "\n"
+        if sys.platform.startswith('win32'):
+            self.sign_ready = "{ready}\r\n"
+        else:
+            self.sign_ready = "{ready}\n"
+
+        self.config = str(config)
+
+    def __enter__(self):
+        """Start a process for ExifTool and let it stay open to communicate."""
+        command = self.executable
+        if not self.config == '':
+            command  += ['-config', self.config]
+        self.process = subprocess.Popen(command +  ['-stay_open', 'True',
+                '-@', '-'],
+            universal_newlines=True,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        print('ExifTool: Start')
+        return self
+
+    def  __exit__(self, exc_type, exc_value, traceback):
+        """Shutdown ExifTool."""
+        self.process.stdin.write("-stay_open\nFalse\n")
+        self.process.stdin.flush()
+        self.process.stdin.close()
+        self.process.stdout.close()
+        print('ExifTool: Stop')
+
+    def do(self, *args):
+        """Pipe a command to ExifTool and read the answer.
+
+        Positional arguments:
+        *args -- at least one command as string, set an extra string for each
+                 parameter for ExifTool.
+        """
+        action = args + ("-execute\n",)
+        self.process.stdin.write("\n".join(action))
+        self.process.stdin.flush()
+        output = ''
+        fd = self.process.stdout.fileno()
+        while not output.endswith(self.sign_ready):
+            output += os.read(fd, 4096).decode('utf-8')
+        return self.parse_result(output[:-len(self.sign_ready)].strip())
+
+    def do_for(self, for_in=[], *args):
+        """Same as do but applies *args to all targets.
+
+        Keyword arguments:
+        for_in -- list of strings, for each string all other arguments will be
+                  called
+
+        Positional arguments:
+        *args -- see do, but "#FOR#" will be replaced by each string in for_in
+        """
+        args = list(args)
+        results = []
+        i = 0
+        for string in for_in:
+            args_current = [item.replace('#FOR#', string) for item in args]
+            results[i] = self.do(*args_current)
+            i += 1
+        return results
+
+    def parse_result(self, raw):
+        """Parse the raw result and return a list of processable results."""
+        result = {}
+        result['text'] = raw
+        result['updated'] = re.sub(r'.*([0-9]+) image files updated.*', r'\1',
+                raw, flags=re.S)
+        if len(raw) == len(result['updated']):
+            result['updated'] = 0
+        else:
+            result['updated'] = int(result['updated'])
+
+        result['created'] = re.sub(r'.*([0-9]+) image files created.*', r'\1',
+                raw, flags=re.S)
+        if len(raw) == len(result['created']):
+            result['created'] = 0
+        else:
+            result['created'] = int(result['created'])
+
+        result['unchanged'] = re.sub(r'.*([0-9]+) image files unchanged.*',
+                r'\1', raw, flags=re.S)
+        if len(raw) == len(result['unchanged']):
+            result['unchanged'] = 0
+        else:
+            result['unchanged'] = int(result['unchanged'])
+
+        result['new_name'] = re.sub(r".*'[^']+' --> '([^']+)'.*", r'\1',
+                raw, flags=re.S)
+        if len(raw) == len(result['new_name']):
+            result['new_name'] = ''
+
+        return result
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args,
+                    **kwargs)
+        return cls._instances[cls]
+
+class ExifToolSingleton(ExifTool, metaclass=Singleton):
+    pass

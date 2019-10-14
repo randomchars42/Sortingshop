@@ -1,0 +1,13 @@
+ppy
+
+# Python
+__pycache__
+/dist/
+*.egg-info
+.eggs
+/build
+
+# Vim
+*.sw[op]
+Session.vim
+tags

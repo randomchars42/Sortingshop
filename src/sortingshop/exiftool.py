@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+import logging
 import subprocess
 import sys
 import os
 from pathlib import Path
 import re
+
 path_app = Path(__file__).resolve().parent
+
+logger = logging.getLogger(__name__)
 
 class ExifTool():
     """A Wrapper around ExifTool-CLI.
@@ -47,7 +51,7 @@ class ExifTool():
                 '-@', '-'],
             universal_newlines=True,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        print('ExifTool: Start')
+        logger.info('started ExifTool')
         return self
 
     def  __exit__(self, exc_type, exc_value, traceback):
@@ -56,7 +60,7 @@ class ExifTool():
         self.process.stdin.flush()
         self.process.stdin.close()
         self.process.stdout.close()
-        print('ExifTool: Stop')
+        logger.info('shut down ExifTool')
 
     def do(self, *args):
         """Pipe a command to ExifTool and read the answer.
@@ -65,14 +69,16 @@ class ExifTool():
         *args -- at least one command as string, set an extra string for each
                  parameter for ExifTool.
         """
-        action = args + ("-execute\n",)
-        self.process.stdin.write("\n".join(action))
+        action = "\n".join(args + ("-execute\n",))
+        logger.debug('command: ' + ' '.join(args))
+        self.process.stdin.write(action)
         self.process.stdin.flush()
-        output = ''
+        chunks = ''
         fd = self.process.stdout.fileno()
         while not output.endswith(self.sign_ready):
-            output += os.read(fd, 4096).decode('utf-8')
-        return self.parse_result(output[:-len(self.sign_ready)].strip())
+            chunks += os.read(fd, 4096).decode('utf-8')
+        raw_output = chunks[:-len(self.sign_ready)].strip()
+        return self.parse_result(raw_output)
 
     def do_for(self, for_in=[], *args):
         """Same as do but applies *args to all targets.
@@ -123,6 +129,10 @@ class ExifTool():
         if len(raw) == len(result['new_name']):
             result['new_name'] = ''
 
+        logger.debug('result: updated: ' + str(result['updated']) +
+                ' created: ' + str(result['created']) +
+                ' unchanged: ' + str(result['unchanged']) +
+                ' new_name: ' + str(result['new_name']))
         return result
 
 class Singleton(type):

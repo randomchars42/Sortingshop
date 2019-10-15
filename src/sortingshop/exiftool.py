@@ -75,7 +75,7 @@ class ExifTool():
         self.process.stdin.flush()
         chunks = ''
         fd = self.process.stdout.fileno()
-        while not output.endswith(self.sign_ready):
+        while not chunks.endswith(self.sign_ready):
             chunks += os.read(fd, 4096).decode('utf-8')
         raw_output = chunks[:-len(self.sign_ready)].strip()
         return self.parse_result(raw_output)

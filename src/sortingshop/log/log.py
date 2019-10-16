@@ -17,14 +17,14 @@ config = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'file':{
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'log',
-            'formatter': 'detailed',
-            'maxBytes': 1024,
-            'backupCount': 5,
-            }
+        #'file':{
+        #    'level': 'DEBUG',
+        #    'class': 'logging.handlers.RotatingFileHandler',
+        #    'filename': 'log',
+        #    'formatter': 'detailed',
+        #    'maxBytes': 1024,
+        #    'backupCount': 5,
+        #    }
     },
     'loggers': {
         '__main__': {

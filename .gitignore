@@ -1,8 +1,9 @@
 ppy
+src/sortingshop/exiftool-src/*
 
 # Python
 __pycache__
-/dist/
+/dist
 *.egg-info
 .eggs
 /build

@@ -141,6 +141,13 @@ class MediaItem():
         # yields either '.' or 'deleted'
         return str(self.__path.parent.relative_to(self.__basepath)) == 'deleted'
 
+    def exists(self):
+        """Check if the item has been removed after this object has been built.
+
+        Checks if a file at the path exists and returns a boolean.
+        """
+        return self.__path.is_file()
+
 #    def _increment_last_counter(self, name,
 #            until = lambda new_name: True, parts = {}):
 #        """Increment the value of the last counter until XXX.

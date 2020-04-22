@@ -28,8 +28,6 @@ class Sortingshop():
     def _reset(self):
         """Reset instance variables related to media file handling."""
         self.__medialist = None
-        self.__current_mediafile = -1
-        self.__current_sidecar = -1
 
     def run(self):
         """Do"""
@@ -61,6 +59,7 @@ class Sortingshop():
     def on_set_working_dir(self, params):
         """Load media files and config from the given directory.
 
+        Positional arguments:
         params -- dict with key 'working_dir'
         """
         logger.info('setting "{}" as working_dir'.format(params['working_dir']))
@@ -88,34 +87,67 @@ class Sortingshop():
             logger.error(error, exc_info=True)
             self.__medialist = None
             return
-        # file indeces start with 0!
-        self.__current_mediafile = 0
-        self.load_mediafile(self.__current_mediafile)
+        self.load_mediafile('first')
 
-    def load_mediafile(self, index):
-        try:
-            mediafile = self.__medialist.get_mediafile(index)
-            logger.debug('load "{}"'.format(mediafile.get_name()))
-        except IndexError as error:
-            self.__ui.display_message('Media file not found')
-            logger.error('Media file with index "{}" not found'.format(index))
-            self._reset()
+    def load_mediafile(self, position):
+        """ Load a mediafile and check if it has been removed since startup.
+
+        After set_working_dir the working directory is scanned and a list is
+        built. If the user (re)moves the files from that directory the change
+        will not be automagically detected so this function checks if the
+        requested file (first, last, next, previous, current) is available.
+
+        Positional arguments:
+        position -- string indicating the requested file ("first", "last",
+            "next", "previous", "current")
+        """
+        media_file_found = False
+        abort = False
+        files_not_found = 0
+
+        # - try to load the file
+        # - if no file is found try again (the next / previous / new first /
+        #   new last)
+        # - if "current" is requested or no file remains in the list display a
+        #   default image
+        while media_file_found is False and abort is False:
+            try:
+                mediafile = self.__medialist.get_mediafile(position)
+                logger.debug('load "{}"'.format(mediafile.get_name()))
+            except FileNotFoundError as error:
+                logger.error('{} media file not found'.format(position))
+                if position == 'current':
+                    self.__ui.display_message('Current media file not found ' + 
+                        'anymore. Did you just remove it?')
+                    # leave loop display default and continue...
+                    abort = True
+                    pass
+                # count files
+                files_not_found += 1
+                pass
+            except IndexError as error:
+                self.__ui.display_message('No media files found.')
+                logger.error('media list empty')
+                abort = True
+                pass
+            else:
+                media_file_found = True
+        if not media_file_found:
+            # no "current" mediafile or list is empty
+            self.__ui.display_picture(None)
             return
+        elif files_not_found > 0:
+            self.__ui.display_message('{} file(s) not found anymore.'.format(
+                str(files_not_found)))
         self.__ui.display_picture(mediafile.get_path())
 
     def load_next_mediafile(self):
-        if self.__current_mediafile == self.__medialist.get_number_mediafiles():
-            self.__current_mediafile = -1
-        self.__current_mediafile += 1
-        logger.debug('next picture ({}).'.format(self.__current_mediafile))
-        self.load_mediafile(self.__current_mediafile)
+        logger.debug('next picture')
+        self.load_mediafile('next')
 
     def load_previous_mediafile(self):
-        if self.__current_mediafile == 0:
-            self.__current_mediafile = self.__medialist.get_number_mediafiles()
-        self.__current_mediafile -= 1
-        logger.debug('previous picture ({}).'.format(self.__current_mediafile))
-        self.load_mediafile(self.__current_mediafile)
+        logger.debug('previous picture')
+        self.load_mediafile('previous')
 
     def load_source(self, index):
         logger.info('blah')

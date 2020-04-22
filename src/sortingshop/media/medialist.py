@@ -34,6 +34,7 @@ class MediaList():
         self.__missing_parents = []
         self.__no_access = []
         self.__duplicate_name = ''
+        self.__current = 0
 
     def parse(self, directory):
         """Catch media files and sidecars in directory and directory/deleted.
@@ -236,9 +237,42 @@ class MediaList():
         """Return the number of valid mediafiles."""
         return len(self.__mediafiles)
 
-    def get_mediafile(self, number):
-        """Return the MediaFile with the given number (0, ..., n-1).
-        
-        Starting with one!
+    def get_mediafile(self, position):
+        """Return the MediaFile at the requested position.
+
+        Raises IndexError if no mediafiles are stored in the list.
+        Raises FileNotFoundError if the requested file could not be found.
+
+        Positional arguments:
+        position -- string indicating the requested file ("first", "last",
+            "next", "previous", "current")
         """
-        return self.__mediafiles[number]
+        if len(self.__mediafiles) == 0:
+            raise IndexError
+
+        index = self.__current
+
+        if position == 'next':
+            if self.__current >= len(self.__mediafiles) - 1:
+                index = 0
+            else:
+                index += 1
+        elif position == 'previous':
+            if self.__current <= 0:
+                index = len(self.__mediafiles) -1
+            else:
+                index -= 1
+        elif position == 'first':
+            index = 0
+        elif position == 'last':
+            index = len(self.__mediafiles) - 1
+
+        if not self.__mediafiles[index].exists():
+            # file must have been removed by the user since building the list
+            # remove it
+            del self.__mediafiles[index]
+            raise FileNotFoundError
+
+        self.__current = index
+
+        return self.__mediafiles[self.__current]

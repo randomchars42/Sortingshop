@@ -215,5 +215,5 @@ class UI():
         pass
 
     def display_dialog(self, message, dialog_type="yesno"):
-        raise NotImplementedError('method "display_message" not implemented')
+        raise NotImplementedError('method "display_dialog" not implemented')
         pass

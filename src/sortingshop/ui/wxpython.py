@@ -148,11 +148,10 @@ class WxPython(ui.UI):
         pass
 
     def display_message(self, message):
-        raise NotImplementedError('method "display_message" not implemented')
-        pass
+        wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
 
     def display_dialog(self, message, dialog_type="yesno"):
-        raise NotImplementedError('method "display_message" not implemented')
+        raise NotImplementedError('method "display_dialog" not implemented')
         pass
 
 class Page(wx.Panel):
@@ -402,3 +401,4 @@ class CommandEntry(CustomWidget):
         processor_function -- function to process the command
         """
         self.__process_command = processor_function
+

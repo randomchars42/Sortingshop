@@ -7,8 +7,6 @@ import configparser
 
 from . import singleton
 
-path_app = Path(__file__).resolve().parent
-
 logger = logging.getLogger(__name__)
 
 class Config():
@@ -27,7 +25,8 @@ class Config():
         self._reset()
         config = configparser.ConfigParser()
         # load from APPLICATION_PATH/settings/config.ini
-        path = path_app / Path('settings/config.ini')
+        path = Path(pkg_resources.resource_filename(__name__,
+            'settings/config.ini'))
         self._load_config(config, path)
         # load from XDG_CONFIG_HOME/sortingshop/config.ini if defined else from
         # ~/.config/sortingshop

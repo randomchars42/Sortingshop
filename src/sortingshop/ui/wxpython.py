@@ -131,13 +131,13 @@ class WxPython(ui.UI):
         raise NotImplementedError('method "display_shortcuts" not implemented')
         pass
 
-    def display_picture(self, picture_path):
+    def display_picture(self, picture_path = None):
         """Display the given picture.
 
-        Positional arguments:
+        Keyword arguments:
         picture_path -- path to the picture (string / Path)
         """
-        self.__pages['tag'].load_image(str(picture_path))
+        self.__pages['tag'].load_image(picture_path)
 
     def display_sources(self, sources):
         raise NotImplementedError('method "display_sources" not implemented')
@@ -269,20 +269,24 @@ class TagPage(Page):
         # finished construction
 
         # load a default image
-        self.load_image(pkg_resources.resource_filename(__name__,
-            'resources/default.jpeg'))
+        self.load_image()
 
     def show_page(self):
         """Show the page and focus the CommandEntry."""
         super(TagPage, self).show_page()
         self.focus_command_entry()
 
-    def load_image(self, path):
+    def load_image(self, path = None):
         """Load the image, scale it down and display it.
 
-        Positional arguments:
+        Keyword arguments:
         path -- path of the image (string or Path)
         """
+
+        if path is None:
+            path = Path(pkg_resources.resource_filename(__name__,
+            'resources/default.jpeg'))
+
         image = wx.Image(str(path), type=wx.BITMAP_TYPE_ANY)
         # scale the image, preserving the aspect ratio
         width = image.GetWidth()

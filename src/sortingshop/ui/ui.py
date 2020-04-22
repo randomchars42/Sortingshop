@@ -191,12 +191,13 @@ class UI():
         raise NotImplementedError('method "display_shortcuts" not implemented')
         pass
 
-    def display_picture(self, picture_path):
+    def display_picture(self, picture_path = None):
         """Display the given picture.
 
-        This is an abstract method.
+        This is an abstract method. If no path is given consider loading a
+        default.
 
-        Positional arguments:
+        Keyword arguments:
         picture_path -- path to the picture (string / Path)
         """
         raise NotImplementedError('method "display_pictures" not implemented')

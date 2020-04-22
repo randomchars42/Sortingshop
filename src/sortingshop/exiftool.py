@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 
+from . import singleton
+
 path_app = Path(__file__).resolve().parent
 
 logger = logging.getLogger(__name__)
@@ -135,14 +137,5 @@ class ExifTool():
                 ' new_name: ' + str(result['new_name']))
         return result
 
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args,
-                    **kwargs)
-        return cls._instances[cls]
-
-class ExifToolSingleton(ExifTool, metaclass=Singleton):
+class ExifToolSingleton(ExifTool, metaclass=singleton.Singleton):
     pass

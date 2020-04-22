@@ -1,0 +1,128 @@
+
+#!/usr/bin/env python3
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+class TagList():
+    """Collection of tags."""
+
+    def __init__(self):
+        """Initialise instance variables."""
+        self.__tags = []
+
+    def toggle_tags(self, tags, force_all=False):
+        """Toggle individual tags.
+
+        Expands nested tags so that if you set "tags|my tags|special tag"
+        "tags" and "tags|my tags" will be set as well. On removal of
+        "tags|my tags|special tag" it will check if "tags" or "tags|my tags" are
+        used by other tags (e.g. "tags|your tags" or "tags|my tags|not special")
+        and remove those tags as well if they are not needed.
+
+        Positional arguments:
+        tags -- List of tags
+
+        Keyword arguments:
+        force_all -- force the existent of all tags before removing all
+        """
+        remove = []
+        add = []
+
+        if force_all:
+            # if all items are already there
+            if all(tag in tags for tag in self.__tags):
+                # remove all
+                for tag in tags:
+                    remove += self._remove_from_taglist(tag)
+            else:
+                # add all
+                for tag in tags:
+                    add += self._add_to_taglist(tag)
+        else:
+            # collect tags that were added / removed
+            add = []
+            remove = []
+            for tag in tags:
+                if tag in self.__tags:
+                    remove += self._remove_from_taglist(tag)
+                else:
+                    add += self._add_to_taglist(tag)
+
+        return {'add': add, 'remove': remove}
+
+    def get_tags(self):
+        """Return a list of tags."""
+        return self.__tags
+
+    def load_tags(self, tags, intersect=False):
+        """Add tags for initial construction - else use toggle_tags.
+
+        Will not add duplicate tags.
+
+        Positional arguments:
+        tags -- list of tags to add
+
+        Keyword arguments:
+        intersect -- use only tags that are already present and in "tags"
+        """
+        if not intersect:
+            for tag in tags:
+                if not tag in self.__tags:
+                    self.__tags.append(tag)
+        else:
+            keep = []
+            for tag in tags:
+                if tag in self.__tags:
+                    keep.append(tag)
+            self.__tags = keep
+
+    def _remove_from_taglist(self, remove):
+        """Recursively remove a tag and its parents if no other children exist.
+
+        Return a List of tags that were removed.
+
+        Positional arguments:
+        remove -- the tag to remove
+        """
+        if not remove in self.__tags:
+            return []
+
+        # a child tag would begin with "tag|"
+        child = remove + '|'
+
+        # check if there is a child
+        if any(tag.startswith(child) for tag in self.__tags):
+            return []
+
+        # if not remove it
+        self.__tags.remove(remove)
+
+        # return the tag as removed and try to remove its parent as well
+        index = remove.rfind('|')
+        if index > 0:
+            # there's a parent
+            return [remove] + self.__remove_from_taglist(remove[0:index])
+        else:
+            return [remove]
+
+    def _add_to_taglist(self, add):
+        """Add a tag and its parents to the taglist.
+
+        Positional arguments:
+        add -- the tag to add
+        """
+        if add in self.__tags:
+            return []
+
+        self.__tags.append(add)
+
+        # return the tag as added and try to add its parent as well
+        index = add.rfind('|')
+        if index > 0:
+            # there's a parent
+            return [add] + self.__add_to_taglist(add[0:index])
+        else:
+            return [add]
+

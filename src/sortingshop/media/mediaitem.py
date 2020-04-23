@@ -25,6 +25,8 @@ class MediaItem():
         self.__path = Path(path)
         self.__basepath = Path(basepath)
         self.__taglist = taglist.TagList()
+        self.__metadata = {}
+        self.__date = None
 
     def get_path(self):
         """Return the path as Path."""
@@ -147,6 +149,36 @@ class MediaItem():
         Checks if a file at the path exists and returns a boolean.
         """
         return self.__path.is_file()
+
+    def unload(self):
+        """Unload metadata."""
+        self.__taglist = taglist.TagList()
+        self.__metadata = {}
+        self.__date = None
+
+    def load(self):
+        """Load metadata and determine create date."""
+        # use "-s" to get names as used here: https://exiftool.org/TagNames/
+        raw = self.__exiftool.do(str(self.__path), '-s')['text']
+        lines = raw.splitlines()
+
+        for line in lines:
+            key, value = line.split(sep=':', maxsplit=1)
+            self.__metadata[key.strip()] = value.strip()
+
+    def get_metadata(self, keyword=None, default='undefined'):
+        """ Return all metadata or just a specific variable.
+
+        Names are defined here: https://exiftool.org/TagNames/
+
+        Keyword arguments:
+        keyword -- string, if other than None try to return specific metadata
+        default -- string, if keyword is not found return this string
+        """
+        if keyword is None:
+            return self.__metadata
+        else:
+            return self.__metadata.get(keyword, default)
 
 #    def _increment_last_counter(self, name,
 #            until = lambda new_name: True, parts = {}):

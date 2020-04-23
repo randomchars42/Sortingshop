@@ -124,8 +124,8 @@ class MediaList():
 
                 # add sidecar
                 if suffix == '.xmp':
-                    sidecar = sidecar.Sidecar(path, basepath=basepath)
-                    parent = sidecar.get_parent()
+                    scar = sidecar.Sidecar(path, basepath=basepath)
+                    parent = scar.get_parent()
                     if parent is None:
                         # no parent exists
                         self.__missing_parents.append(str(path))
@@ -137,11 +137,11 @@ class MediaList():
                         # exists
                         self._check_mediafile_name_exists(parent, files)
 
-                        files[parent.name].add_sidecars([sidecar])
+                        files[parent.name].add_sidecars([scar])
                     except KeyError:
                         # create a parent
                         files[parent.name] = mediafile.MediaFile(parent,
-                                sidecars=[sidecar], basepath=basepath)
+                                sidecars=[scar], basepath=basepath)
                         # remember it was created so it is not created twice
                         implicit_parents.append(parent.name)
                     continue
@@ -179,7 +179,7 @@ class MediaList():
         mediafile -- Path of the mediafile
         files -- Dict of MediaFiles with the name as keys
         """
-        if not files[mediafile.name].get_path() == str(mediafile):
+        if not str(files[mediafile.name].get_path()) == str(mediafile):
             self.__duplicate_name = mediafile.name
             raise FileExistsError(
                     'File with same name at {} and {}'.format(
@@ -273,6 +273,11 @@ class MediaList():
             del self.__mediafiles[index]
             raise FileNotFoundError
 
+        # free up some space be unloading the current mediaitem
+        self.__mediafiles[self.__current].unload()
+
         self.__current = index
+
+        self.__mediafiles[self.__current].load()
 
         return self.__mediafiles[self.__current]

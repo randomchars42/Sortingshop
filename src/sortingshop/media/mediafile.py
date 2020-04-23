@@ -33,8 +33,20 @@ class MediaFile(mediaitem.MediaItem):
         Keyword arguments:
         sidecars -- List of Sidecars
         """
-        for sidecar in sidecars:
-            if not isinstance(sidecar, sidecar.Sidecar):
-                raise ValueError('not a sidecar ("{}")'.format(str(sidecar)))
+        for scar in sidecars:
+            if not isinstance(scar, sidecar.Sidecar):
+                raise ValueError('not a sidecar ("{}")'.format(str(scar)))
 
         self.__sidecars += sidecars
+
+    def load(self):
+        """Load self (see MediaItem) and all sidecars."""
+        super(MediaFile, self).load()
+        for index in range(len(self.__sidecars)):
+            self.__sidecars[index].load()
+
+    def unload(self):
+        """Unload self (see MediaItem) and all sidecars."""
+        super(MediaFile, self).unload()
+        for index in range(len(self.__sidecars)):
+            self.__sidecars[index].unload()

@@ -41,7 +41,7 @@ class Sidecar(mediaitem.MediaItem):
 
     def get_parent(self):
         """Return the parent's Path."""
-        return self.__parent
+        return self.__parent_path
 
     def find_parent(self):
         """Return the Path to the sidecar's parent or None."""

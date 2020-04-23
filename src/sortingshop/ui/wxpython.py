@@ -144,8 +144,7 @@ class WxPython(ui.UI):
         pass
 
     def display_metadata(self, metadata):
-        raise NotImplementedError('method "display_metadata" not implemented')
-        pass
+        self.__pages['tag'].load_metadata(metadata)
 
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
@@ -257,9 +256,12 @@ class TagPage(Page):
 
         # command entry
         self.__command_entry = CommandEntry(parent=self)
-        self.__column_1.Add(self.__command_entry, flag=wx.EXPAND, proportion=1)
+        self.__column_1.Add(self.__command_entry, flag=wx.EXPAND, proportion=0)
 
-
+        # metadata
+        self.__metadata = wx.TextCtrl(self, id=wx.ID_ANY,
+                style=wx.TE_READONLY|wx.TE_MULTILINE)
+        self.__column_1.Add(self.__metadata, flag=wx.EXPAND, proportion=1)
 
         # tagsets
         self.__tagsets = wx.TextCtrl(self, id=wx.ID_ANY,
@@ -285,7 +287,7 @@ class TagPage(Page):
 
         if path is None:
             path = Path(pkg_resources.resource_filename(__name__,
-            'resources/default.jpeg'))
+                'resources/default.jpeg'))
 
         image = wx.Image(str(path), type=wx.BITMAP_TYPE_ANY)
         # scale the image, preserving the aspect ratio
@@ -309,6 +311,17 @@ class TagPage(Page):
         tagsets -- the tagsets to display
         """
         self.__tagsets.SetValue(tagsets)
+
+    def load_metadata(self, metadata):
+        """Set the text of the metadata widget.
+
+        Positional arguments:
+        metadata -- dict of metadata to display
+        """
+        text = ''
+        for key, value in metadata.items():
+            text += "{}: {}\n".format(key, value)
+        self.__metadata.SetValue(text)
 
     def focus_command_entry(self):
         """Set focus to the command entry."""

@@ -278,6 +278,9 @@ class MediaList():
 
         self.__current = index
 
-        self.__mediafiles[self.__current].load()
+        try:
+            self.__mediafiles[self.__current].load()
+        except IndexError as error:
+            pass
 
         return self.__mediafiles[self.__current]

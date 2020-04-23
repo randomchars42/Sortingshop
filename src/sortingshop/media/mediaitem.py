@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from datetime import datetime
 
 from .. import exiftool
 from . import taglist
@@ -165,6 +166,16 @@ class MediaItem():
         for line in lines:
             key, value = line.split(sep=':', maxsplit=1)
             self.__metadata[key.strip()] = value.strip()
+
+        # determine create date
+        order = ['FileModifyDate', 'ModifyDate', 'CreateDate',
+            'DateTimeOriginal']
+        for key in order:
+            date = self.__metadata.get(key, 'undefined')
+            if not date == 'undefined':
+                self.__date = datetime.strptime(date, '%Y:%m:%d %H:%M:%S%z')
+        if self.__date is None:
+            raise IndexError
 
     def get_metadata(self, keyword=None, default='undefined'):
         """ Return all metadata or just a specific variable.

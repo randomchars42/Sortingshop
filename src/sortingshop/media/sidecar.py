@@ -109,3 +109,4 @@ class Sidecar(mediaitem.MediaItem):
         self.get_path().rename(proposed)
         if proposed.exists():
             self.set_path(proposed)
+        return proposed

@@ -22,12 +22,12 @@ class MediaItem():
         path -- path of the file (string / Path)
         basepath -- basepath (working directory; string / Path)
         """
-        self.__exiftool = exiftool.ExifToolSingleton()
+        self._exiftool = exiftool.ExifToolSingleton()
         self.__path = Path(path)
         self.__basepath = Path(basepath)
         self.__taglist = taglist.TagList()
         self.__metadata = {}
-        self.__date = None
+        self._date = None
 
     def get_path(self):
         """Return the path as Path."""
@@ -160,7 +160,7 @@ class MediaItem():
     def load(self):
         """Load metadata and determine create date."""
         # use "-s" to get names as used here: https://exiftool.org/TagNames/
-        raw = self.__exiftool.do(str(self.__path), '-s')['text']
+        raw = self._exiftool.do(str(self.__path), '-s')['text']
         lines = raw.splitlines()
 
         for line in lines:
@@ -197,6 +197,27 @@ class MediaItem():
             return self.__metadata
         else:
             return self.__metadata.get(keyword, default)
+
+    def rename(self, name=None):
+        """Rename the file and return the new Path.
+
+        Raises
+         - ValueError if name is None
+         - FileExistsError if a file with the proposed name already exists
+
+        Keyword arguments:
+        name -- string, the name to rename the file to
+        """
+        if name is None:
+            raise ValueError
+        target = Path(name)
+
+        if target.exists():
+            raise FileExistsError
+
+        self.__path = self.__path.rename(target)
+
+        return self.__path
 
 #    def _increment_last_counter(self, name,
 #            until = lambda new_name: True, parts = {}):

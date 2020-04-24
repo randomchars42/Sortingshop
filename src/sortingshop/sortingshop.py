@@ -104,6 +104,7 @@ class Sortingshop():
         media_file_found = False
         abort = False
         files_not_found = 0
+        cfg = config.ConfigSingleton()
 
         # - try to load the file
         # - if no file is found try again (the next / previous / new first /
@@ -141,8 +142,12 @@ class Sortingshop():
                 str(files_not_found)))
         self.__ui.display_picture(mediafile.get_path())
 
+        # renaming enabled and file needs renaming
+        if cfg.get('RENAMING', 'rename_files', variable_type='boolean',
+                default=False) and not mediafile.is_named_correctly():
+            mediafile.rename()
+
         self.__ui.display_metadata(mediafile.get_metadata())
-        self.__ui.display_message(mediafile.is_named_correctly())
 
     def load_next_mediafile(self):
         logger.debug('next picture')

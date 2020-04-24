@@ -67,3 +67,29 @@ class MediaFile(mediaitem.MediaItem):
             return True
         else:
             return False
+
+    def rename(self, name=None):
+        """Use exiftool to rename the file and return the new Path.
+
+        Keyword arguments:
+        name -- string, the name to rename the file to (ignored)
+        """
+        cfg = config.ConfigSingleton()
+        commands = cfg.get('RENAMING', 'rename_command').strip().split()
+        commands.append(str(self.get_path()))
+        result = self._exiftool.do(*commands)
+
+        path = self.get_path().parent / result['new_name']
+
+        if result['new_name'] == '' or not path.is_file():
+            logger.warning('could not rename file {}'.format(self.get_name()))
+            raise FileNotFoundError
+        logger.debug('set name of {} to {}'.format(self.get_name(),
+            result['new_name']))
+
+        self.set_path(path)
+
+        for index in range(len(self.__sidecars)):
+            self.__sidecars[index].rename(path)
+
+        return path

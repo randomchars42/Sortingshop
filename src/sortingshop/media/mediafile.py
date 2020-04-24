@@ -76,6 +76,9 @@ class MediaFile(mediaitem.MediaItem):
         """
         cfg = config.ConfigSingleton()
         commands = cfg.get('RENAMING', 'rename_command').strip().split()
+        if len(commands) == '':
+            logger.error('no rename_command in config')
+            raise ValueError
         commands.append(str(self.get_path()))
         result = self._exiftool.do(*commands)
 

@@ -6,6 +6,7 @@ import os
 
 from . import sidecar
 from . import mediafile
+from .. import config
 
 logger = logging.getLogger(__name__)
 
@@ -247,6 +248,8 @@ class MediaList():
         position -- string indicating the requested file ("first", "last",
             "next", "previous", "current")
         """
+        cfg = config.ConfigSingleton()
+
         if len(self.__mediafiles) == 0:
             raise IndexError
 
@@ -259,7 +262,12 @@ class MediaList():
                 index += 1
         elif position == 'previous':
             if self.__current <= 0:
-                index = len(self.__mediafiles) -1
+                if cfg.get('RENAMING', 'rename_files', variable_type='boolean'):
+                    # if auto-renaming files do not allow to move from last to
+                    # first because it may mess up counters
+                    index = 0
+                else:
+                    index = len(self.__mediafiles) -1
             else:
                 index -= 1
         elif position == 'first':

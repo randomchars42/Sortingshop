@@ -2,9 +2,11 @@
 
 import logging
 from pathlib import Path
+import re
 
 from . import mediaitem
 from . import sidecar
+from .. import config
 
 logger = logging.getLogger(__name__)
 
@@ -50,3 +52,18 @@ class MediaFile(mediaitem.MediaItem):
         super(MediaFile, self).unload()
         for index in range(len(self.__sidecars)):
             self.__sidecars[index].unload()
+
+    def is_named_correctly(self):
+        """Checks if the file is named correctly.
+
+        Because exiftool's syntax is too advanced the user is required to
+        provide a matching regex. This regex may contain variables that can be
+        interpreted by datetime.strftime().
+        """
+        cfg = config.ConfigSingleton()
+        # load detect scheme from config and let strftime replace all variables
+        regex = self._date.strftime(cfg.get('RENAMING', 'detect_scheme'))
+        if not re.fullmatch(re.compile(regex), self.get_name()) is None:
+            return True
+        else:
+            return False

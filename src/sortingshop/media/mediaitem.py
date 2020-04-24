@@ -155,7 +155,7 @@ class MediaItem():
         """Unload metadata."""
         self.__taglist = taglist.TagList()
         self.__metadata = {}
-        self.__date = None
+        self._date = None
 
     def load(self):
         """Load metadata and determine create date."""
@@ -173,8 +173,15 @@ class MediaItem():
         for key in order:
             date = self.__metadata.get(key, 'undefined')
             if not date == 'undefined':
-                self.__date = datetime.strptime(date, '%Y:%m:%d %H:%M:%S%z')
-        if self.__date is None:
+                # python's strptime / strftime expects time zone data like this:
+                # +HHMM whereas exiftool may print it like +HH:MM
+                # 2020:04:23 20:53:00+01:00
+                if len(date) == 25:
+                    date = date[:22] + date[23:]
+                elif len(date) == 19:
+                    date += '+0000'
+                self._date = datetime.strptime(date, '%Y:%m:%d %H:%M:%S%z')
+        if self._date is None:
             raise IndexError
 
     def get_metadata(self, keyword=None, default='undefined'):

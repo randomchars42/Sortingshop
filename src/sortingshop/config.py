@@ -4,6 +4,7 @@ import logging
 import os
 from pathlib import Path
 import configparser
+import pkg_resources
 
 from . import singleton
 
@@ -19,11 +20,11 @@ class Config():
     Where the latter configurations override the former configurations.
     """
 
-    def __init__(self, flags = {}):
+    def __init__(self, flags={}):
         """Initialise variables and load config from file(s).
         """
         self._reset()
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(interpolation=None)
         # load from APPLICATION_PATH/settings/config.ini
         path = Path(pkg_resources.resource_filename(__name__,
             'settings/config.ini'))
@@ -32,13 +33,21 @@ class Config():
         # ~/.config/sortingshop
         path = Path(os.getenv('XDG_CONFIG_HOME') or '~/.config').resolve()
         path = path / 'sortingshop' / 'config.ini'
-        self._load_config(config, path)
+        self.__config_stored = self._load_config(config, path)
+        self.__config_effective = self.__config_stored
 
     def _reset(self):
+        """Reset variables."""
         self.__config_stored = {}
         self.__config_effective = {}
 
     def _load_config(self, config, path):
+        """Load config from file.
+
+        Positional arguments:
+        config -- configparser.ConfigParser()
+        path -- Path to load config from
+        """
         try:
             with open(path, 'r') as configfile:
                 config.read_file(configfile)
@@ -47,6 +56,25 @@ class Config():
         else:
             logger.debug('loaded config from: ' + str(path))
         return config
+
+    def get(self, *args, default=None, variable_type=None):
+        """Return the specified configuration or default.
+
+        Positional arguments:
+        *args -- string(s), section / key to get
+
+        Keyword arguments:
+        default -- the default to return
+        variable_type -- string, the type ("int", "float" or "boolean")
+        """
+        if variable_type == 'int':
+            return self.__config_effective.getint(*args, fallback=default)
+        elif variable_type == 'float':
+            return self.__config_effective.getfloat(*args, fallback=default)
+        elif variable_type == 'boolean':
+            return self.__config_effective.getboolean(*args, fallback=default)
+        else:
+            return self.__config_effective.get(*args, fallback=default)
 
 class ConfigSingleton(Config, metaclass=singleton.Singleton):
     pass

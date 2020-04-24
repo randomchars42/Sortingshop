@@ -140,7 +140,9 @@ class Sortingshop():
             self.__ui.display_message('{} file(s) not found anymore.'.format(
                 str(files_not_found)))
         self.__ui.display_picture(mediafile.get_path())
+
         self.__ui.display_metadata(mediafile.get_metadata())
+        self.__ui.display_message(mediafile.is_named_correctly())
 
     def load_next_mediafile(self):
         logger.debug('next picture')

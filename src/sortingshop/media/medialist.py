@@ -59,15 +59,14 @@ class MediaList():
             raise FileNotFoundError(
                     'No such directory ("{}")'.format(directory))
 
-        files = self._parse_directory(directory, directory, reset=True)
+        files = self._parse_directory(directory, reset=True)
 
         # parse the subdirectory "deleted" as well
         deleted_dir = directory.joinpath('deleted')
 
         if deleted_dir.exists():
             # do not erase all files from the main directory from the list
-            files = self._parse_directory(deleted_dir, directory, files=files,
-                    reset=False)
+            files = self._parse_directory(deleted_dir, files=files, reset=False)
 
         self.__mediafiles = list(files.values())
         # sort by file name, regardless if file is in the 'deleted'-subfolder
@@ -76,7 +75,7 @@ class MediaList():
         self.__mediafiles = sorted(self.__mediafiles,
                 key=lambda mediafile: mediafile.get_name())
 
-    def _parse_directory(self, directory, basepath, files={}, reset=False):
+    def _parse_directory(self, directory, files={}, reset=False):
         """Scan the directory and catch media files and sidecars.
 
         Expects sidecars to be named like their parent file + ".xmp", e.g.
@@ -91,7 +90,6 @@ class MediaList():
 
         Positional arguments:
         directory -- Path of the directory to scan
-        basepath -- Path of the basepath
 
         Keyword arguments:
         files -- dictionary of files already present with the paths as keys
@@ -125,7 +123,7 @@ class MediaList():
 
                 # add sidecar
                 if suffix == '.xmp':
-                    scar = sidecar.Sidecar(path, basepath=basepath)
+                    scar = sidecar.Sidecar(path)
                     parent = scar.get_parent()
                     if parent is None:
                         # no parent exists
@@ -142,7 +140,7 @@ class MediaList():
                     except KeyError:
                         # create a parent
                         files[parent.name] = mediafile.MediaFile(parent,
-                                sidecars=[scar], basepath=basepath)
+                                sidecars=[scar])
                         # remember it was created so it is not created twice
                         implicit_parents.append(parent.name)
                     continue
@@ -161,8 +159,7 @@ class MediaList():
                     except KeyError as error:
                         # the filename does not exist in the files dict
                         pass
-                    files[path.name] = mediafile.MediaFile(path,
-                            basepath=basepath)
+                    files[path.name] = mediafile.MediaFile(path)
         return files
 
     def _check_mediafile_name_exists(self, mediafile, files):
@@ -262,7 +259,7 @@ class MediaList():
                 index += 1
         elif position == 'previous':
             if self.__current <= 0:
-                if cfg.get('RENAMING', 'rename_files', variable_type='boolean'):
+                if cfg.get('Renaming', 'rename_files', variable_type='boolean'):
                     # if auto-renaming files do not allow to move from last to
                     # first because it may mess up counters
                     index = 0

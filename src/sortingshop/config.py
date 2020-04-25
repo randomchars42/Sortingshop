@@ -76,5 +76,14 @@ class Config():
         else:
             return self.__config_effective.get(*args, fallback=default)
 
+    def set(self, section, field, value):
+        """Set a config value manually.
+
+        Positional arguments:
+        section -- string the section
+        field -- string the key 
+        value -- string the value to set
+        """
+
 class ConfigSingleton(Config, metaclass=singleton.Singleton):
     pass

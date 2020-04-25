@@ -15,19 +15,18 @@ class MediaItem():
     Communicates with ExifTool. MediaItems are identified with their paths.
     """
 
-    def __init__(self, path, basepath):
+    def __init__(self, path):
         """Store the path of the file.
 
         Positional arguments:
         path -- path of the file (string / Path)
-        basepath -- basepath (working directory; string / Path)
         """
         self._exiftool = exiftool.ExifToolSingleton()
         self.__path = Path(path)
-        self.__basepath = Path(basepath)
         self.__taglist = taglist.TagList()
         self.__metadata = {}
         self._date = None
+        self._is_loaded = False
 
     def get_path(self):
         """Return the path as Path."""
@@ -139,10 +138,17 @@ class MediaItem():
         return parts['stem'] + counter_string + parts['suffix']
 
     def is_deleted(self):
-        """Is the item in the "deleted" subfolder?"""
+        """Is the item in the "deleted" subfolder?
+
+        Raises ValueError if working_dir is not set in the configuration.
+        """
         # subtract working directory from current path
         # yields either '.' or 'deleted'
-        return str(self.__path.parent.relative_to(self.__basepath)) == 'deleted'
+        cfg = config.ConfigSingleton()
+        basepath = cfg.get('Paths', 'working_dir', None)
+        if basepath is None:
+            raise ValueError
+        return str(self.__path.parent.relative_to(basepath)) == 'deleted'
 
     def exists(self):
         """Check if the item has been removed after this object has been built.
@@ -156,6 +162,7 @@ class MediaItem():
         self.__taglist = taglist.TagList()
         self.__metadata = {}
         self._date = None
+        self._is_loaded = None
 
     def load(self):
         """Load metadata and determine create date."""
@@ -183,6 +190,10 @@ class MediaItem():
                 self._date = datetime.strptime(date, '%Y:%m:%d %H:%M:%S%z')
         if self._date is None:
             raise IndexError
+        self._is_loaded = True
+
+    def is_loaded(self):
+        return self._is_loaded
 
     def get_metadata(self, keyword=None, default='undefined'):
         """ Return all metadata or just a specific variable.
@@ -218,26 +229,3 @@ class MediaItem():
         self.__path = self.__path.rename(target)
 
         return self.__path
-
-#    def _increment_last_counter(self, name,
-#            until = lambda new_name: True, parts = {}):
-#        """Increment the value of the last counter until XXX.
-#
-#        See _get_name_parts for more detail.
-#
-#        Positional arguments:
-#        name -- the name to use
-#
-#        Keyword arguments:
-#        parts -- the parts as returned by _get_name_parts
-#        """
-#        if not len(parts) > 0:
-#            parts = self.get_name_parts(name)
-#
-#        counter = 1
-#
-#        while counter < 10**parts['counter_length']:
-#            proposed = self.set_last_counter(name, counter, parts)
-#            if until(proposed):
-#                return proposed
-#            counter += 1

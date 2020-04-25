@@ -66,6 +66,9 @@ class Sortingshop():
 
         self._reset()
 
+        cfg = config.ConfigSingleton()
+        cfg.set('Paths', 'working_dir', params['working_dir'])
+
         self.__medialist = medialist.MediaList()
         try:
             self.__medialist.parse(params['working_dir'])
@@ -104,7 +107,6 @@ class Sortingshop():
         media_file_found = False
         abort = False
         files_not_found = 0
-        cfg = config.ConfigSingleton()
 
         # - try to load the file
         # - if no file is found try again (the next / previous / new first /
@@ -140,12 +142,9 @@ class Sortingshop():
         elif files_not_found > 0:
             self.__ui.display_message('{} file(s) not found anymore.'.format(
                 str(files_not_found)))
-        self.__ui.display_picture(mediafile.get_path())
 
-        # renaming enabled and file needs renaming
-        if cfg.get('RENAMING', 'rename_files', variable_type='boolean',
-                default=False) and not mediafile.is_named_correctly():
-            mediafile.rename()
+        mediafile.prepare()
+        self.__ui.display_picture(mediafile.get_path())
 
         self.__ui.display_metadata(mediafile.get_metadata())
 

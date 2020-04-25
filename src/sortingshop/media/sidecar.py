@@ -15,14 +15,13 @@ class Sidecar(mediaitem.MediaItem):
     - parent_COUNTER.SUFFIX.xmp in case of > 1 sidecars per parent
     """
 
-    def __init__(self, path, basepath):
+    def __init__(self, path):
         """Set the path (MediaItem.__init__) and try to find a parent.
 
         Positional arguments:
         path -- the path (string or Path)
-        basepath -- the path of the working directory (string / Path)
         """
-        super(Sidecar, self).__init__(path, basepath)
+        super(Sidecar, self).__init__(path)
 
         # if a sidecar counter exists it will be set by find_parent
         self.__counter = None
@@ -106,7 +105,5 @@ class Sidecar(mediaitem.MediaItem):
                         str(proposed)))
             return
 
-        self.get_path().rename(proposed)
-        if proposed.exists():
-            self.set_path(proposed)
-        return proposed
+        self.get_path().rename(proposed) if proposed.exists():
+            self.set_path(proposed) return proposed

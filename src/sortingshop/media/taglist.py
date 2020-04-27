@@ -69,12 +69,12 @@ class TagList():
         """
         if not intersect:
             for tag in tags:
-                if not tag in self.__tags:
+                if not tag in self.__tags and not tag === '':
                     self.__tags.append(tag)
         else:
             keep = []
             for tag in tags:
-                if tag in self.__tags:
+                if tag in self.__tags and not tag === '':
                     keep.append(tag)
             self.__tags = keep
 

@@ -170,6 +170,7 @@ class MediaItem():
         raw = self._exiftool.do(str(self.__path), '-s')['text']
         lines = raw.splitlines()
 
+        # convert text lines into dict
         for line in lines:
             key, value = line.split(sep=':', maxsplit=1)
             self.__metadata[key.strip()] = value.strip()
@@ -178,8 +179,8 @@ class MediaItem():
         order = ['FileModifyDate', 'ModifyDate', 'CreateDate',
             'DateTimeOriginal']
         for key in order:
-            date = self.__metadata.get(key, 'undefined')
-            if not date == 'undefined':
+            date = self.__metadata.get(key, None)
+            if not date is None:
                 # python's strptime / strftime expects time zone data like this:
                 # +HHMM whereas exiftool may print it like +HH:MM
                 # 2020:04:23 20:53:00+01:00
@@ -190,6 +191,16 @@ class MediaItem():
                 self._date = datetime.strptime(date, '%Y:%m:%d %H:%M:%S%z')
         if self._date is None:
             raise IndexError
+
+        # load tags
+        cfg = config.ConfigSingleton()
+        tag_field = cfg.get('Metadata', 'field_tags', default=None)
+        if tag_field is None:
+            raise ValueError
+
+        tags = self.get_metadata(keyword=tag_field, default='').split(', ')
+        self.__taglist.load_tags(tags)
+
         self._is_loaded = True
 
     def is_loaded(self):
@@ -208,6 +219,10 @@ class MediaItem():
             return self.__metadata
         else:
             return self.__metadata.get(keyword, default)
+
+    def get_taglist(self):
+        """Return the taglist."""
+        return self.__taglist
 
     def rename(self, name=None):
         """Rename the file and return the new Path.

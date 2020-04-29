@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime
 
 from .. import exiftool
+from .. import config
 from . import taglist
 
 logger = logging.getLogger(__name__)
@@ -167,7 +168,7 @@ class MediaItem():
     def load(self):
         """Load metadata and determine create date."""
         # use "-s" to get names as used here: https://exiftool.org/TagNames/
-        raw = self._exiftool.do(str(self.__path), '-s')['text']
+        raw = self._exiftool.do(str(self.__path), '-n', '-s')['text']
         lines = raw.splitlines()
 
         # convert text lines into dict

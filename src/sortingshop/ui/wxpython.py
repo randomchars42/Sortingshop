@@ -131,13 +131,13 @@ class WxPython(ui.UI):
         raise NotImplementedError('method "display_shortcuts" not implemented')
         pass
 
-    def display_picture(self, picture_path = None):
+    def display_picture(self, mediafile = None):
         """Display the given picture.
 
         Keyword arguments:
-        picture_path -- path to the picture (string / Path)
+        mediafile -- MediaFile
         """
-        self.__pages['tag'].load_image(picture_path)
+        self.__pages['tag'].load_image(mediafile)
 
     def display_sources(self, sources):
         raise NotImplementedError('method "display_sources" not implemented')
@@ -145,6 +145,9 @@ class WxPython(ui.UI):
 
     def display_metadata(self, metadata):
         self.__pages['tag'].load_metadata(metadata)
+
+    def display_tags(self, metadata):
+        self.__pages['tag'].load_tags(metadata)
 
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
@@ -278,18 +281,50 @@ class TagPage(Page):
         super(TagPage, self).show_page()
         self.focus_command_entry()
 
-    def load_image(self, path = None):
+    def load_image(self, mediafile = None):
         """Load the image, scale it down and display it.
 
         Keyword arguments:
-        path -- path of the image (string or Path)
+        mediafile -- MediaFile
         """
 
-        if path is None:
+        if mediafile is None:
             path = Path(pkg_resources.resource_filename(__name__,
                 'resources/default.jpeg'))
+        else:
+            path = str(mediafile.get_path())
 
         image = wx.Image(str(path), type=wx.BITMAP_TYPE_ANY)
+        # rotate / flip according to exif
+        # Value (angles clockwise)
+        #  0 -> do nothing
+        #  1 -> do nothing
+        #  2 -> flip horizontally
+        #  3 -> rotate 180°
+        #  4 -> flip vertically
+        #  5 -> flip horizontally, rotate 270°
+        #  6 -> rotate 90°
+        #  7 -> flip horizontally, rotate 90°
+        #  8 -> rotate 270°
+        if not mediafile is None:
+            orientation = mediafile.get_metadata('Orientation', default='0')
+            if orientation == '2':
+                image = image.Mirror(horizontally=True)
+            elif orientation == '3':
+                image = image.Rotate180()
+            elif orientation == '4':
+                image = image.Mirror(horizontally=True)
+            elif orientation == '5':
+                image = image.Mirror(horizontally=True)
+                image = image.Rotate90(clockwise=False)
+            elif orientation == '6':
+                image = image.Rotate90(clockwise=True)
+            elif orientation == '7':
+                image = image.Mirror(horizontally=True)
+                image = image.Rotate90(clockwise=True)
+            elif orientation == '8':
+                image = image.Rotate90(clockwise=False)
+
         # scale the image, preserving the aspect ratio
         width = image.GetWidth()
         height = image.GetHeight()
@@ -321,6 +356,17 @@ class TagPage(Page):
         text = ''
         for key, value in metadata.items():
             text += "{}: {}\n".format(key, value)
+        self.__metadata.SetValue(text)
+
+    def load_tags(self, tags):
+        """Set the text of the tags widget.
+
+        Positional arguments:
+        tags -- TagList to display
+        """
+        text = ''
+        for tag in tags.get_tags():
+            text += "{}\n".format(tag)
         self.__metadata.SetValue(text)
 
     def focus_command_entry(self):

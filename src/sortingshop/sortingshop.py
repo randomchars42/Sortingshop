@@ -144,9 +144,10 @@ class Sortingshop():
                 str(files_not_found)))
 
         mediafile.prepare()
-        self.__ui.display_picture(mediafile.get_path())
+        self.__ui.display_picture(mediafile)
 
         self.__ui.display_metadata(mediafile.get_metadata())
+        #self.__ui.display_tags(mediafile.get_standard_sidecar().get_taglist())
 
     def load_next_mediafile(self):
         logger.debug('next picture')

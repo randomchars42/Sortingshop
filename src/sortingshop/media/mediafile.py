@@ -36,11 +36,14 @@ class MediaFile(mediaitem.MediaItem):
         Keyword arguments:
         sidecars -- List of Sidecars
         """
+        logger.debug('adding sidecars to {}'.format(self.get_name()))
         for scar in sidecars:
             if not isinstance(scar, sidecar.Sidecar):
                 raise ValueError('not a sidecar ("{}")'.format(str(scar)))
+            logger.debug('adding {} as sidecar'.format(scar.get_name()))
             if scar.get_name() == '{}.xmp'.format(self.get_name()):
-                self._sidecar_standard_index = len(self.__sidecars)
+                logger.debug('standard sidecar detected')
+                self.__sidecar_standard_index = len(self.__sidecars)
             self.__sidecars.append(scar)
 
     def has_standard_sidecar(self):
@@ -63,10 +66,10 @@ class MediaFile(mediaitem.MediaItem):
         """
         result = self._exiftool.do(
                 '-overwrite_original',
-                '-alldates<FileModifyDate',
-                '-alldates<ModifyDate',
-                '-alldates<CreateDate',
-                '-alldates<DateTimeOriginal',
+                '-AllDates<FileModifyDate',
+                '-AllDates<ModifyDate',
+                '-AllDates<CreateDate',
+                '-AllDates<DateTimeOriginal',
                 str(self.get_path()))
 
     def _create_standard_sidecar(self):
@@ -75,21 +78,32 @@ class MediaFile(mediaitem.MediaItem):
         Raises ValueError if mandatory_metadata is not set.
         Raises FileNotFoundError if creation of sidecar did not succeed.
         """
-        tags = cfg.get('Metadata', 'mandatory_metadata').strip().split()
-        if len(tags) == '':
+        cfg = config.ConfigSingleton()
+        metadata = cfg.get('Metadata', 'mandatory_metadata').strip().split()
+        if len(metadata) == '':
             logger.error('no mandatory tags in config')
             raise ValueError
+
+        for index in range(len(metadata)):
+            metadata[index] = '-{}'.format(metadata[index])
 
         path = str(self.get_path())
         sidecar_path = '{}.xmp'.format(path)
 
+        if self.has_standard_sidecar():
+            overwrite = '-overwrite_original'
+        else:
+            overwrite = ''
+
         self._exiftool.do(
+                overwrite,
                 '-tagsfromfile', path,
-                *tags,
-                '-o', sidecar_path)
+                *metadata,
+                sidecar_path)
         if not Path(sidecar_path).is_file():
             raise FileNotFoundError
-        self.add_sidecars([sidecar.Sidecar(sidecar_path)])
+        if not self.has_standard_sidecar():
+            self.add_sidecars([sidecar.Sidecar(sidecar_path)])
 
     def _remove_sidecar(self, index):
         """Removes the requested sidecar.
@@ -124,9 +138,12 @@ class MediaFile(mediaitem.MediaItem):
             raise FileNotFoundError
 
         metadata = cfg.get('Metadata', 'mandatory_metadata').strip().split()
-        if len(tags) == '':
+        if len(metadata) == '':
             logger.error('no mandatory metadata in config')
             raise ValueError
+
+        for index in range(len(metadata)):
+            metadata[index] = '-{}'.format(metadata[index])
 
         self._exiftool.do(
                 '-tagsfromfile', str(scar.get_path()),
@@ -138,13 +155,14 @@ class MediaFile(mediaitem.MediaItem):
 
         Raises ValueError if no mandatory metadata is specified in config.
         """
+        cfg = config.ConfigSingleton()
         metadata = cfg.get('Metadata', 'remove_metadata').strip().split()
-        if len(tags) == '':
+        if len(metadata) == '':
             logger.error('no metadata to remove in config')
             raise ValueError
 
         for index in range(len(metadata)):
-            metadata[index] = '{}='.format(metadata[index])
+            metadata[index] = '-{}='.format(metadata[index])
 
         self._exiftool.do(
                 '-overwrite_original',
@@ -153,6 +171,8 @@ class MediaFile(mediaitem.MediaItem):
 
     def prepare(self):
         """Central function to keep your mediafiles clean."""
+
+        logger.debug('Prepare {}'.format(self.get_name()))
 
         if not self.is_loaded():
             logger.error('could not prepare {} (not loaded)'.format(
@@ -171,16 +191,19 @@ class MediaFile(mediaitem.MediaItem):
                 variable_type='boolean', default=False)
         prune_metadata = cfg.get('Metadata', 'prune_metadata',
                 variable_type='boolean', default=False)
-        soft_check = cfg.get('metadata', 'soft_check',
+        soft_check = cfg.get('Metadata', 'soft_check',
                 variable_type='boolean', default=False)
 
-        if (soft_check and
-            (not rename_files or self.is_named_correctly()) and
-            (not use_sidecar or self.has_standard_sidecar())):
-            logger.info('{} looks already prepared'.format(
-                str(self.get_path())))
-            self.__is_prepared = True
-            return
+        if soft_check:
+            logger.debug('soft checking')
+            if not rename_files or self.is_named_correctly():
+                logger.debug('is named correctly')
+                if not use_sidecar or self.has_standard_sidecar():
+                    logger.debug('has a standard sidecar')
+                    logger.info('{} looks already prepared'.format(
+                        str(self.get_path())))
+                    self.__is_prepared = True
+                    return
 
         self._unify_dates()
 
@@ -197,8 +220,8 @@ class MediaFile(mediaitem.MediaItem):
         # renaming enabled and file needs renaming
         if rename_files and not self.is_named_correctly():
             self.rename()
-        self.__unload()
-        self.__load()
+        self.unload()
+        self.load()
         self.__is_prepared = True
 
     def load(self):

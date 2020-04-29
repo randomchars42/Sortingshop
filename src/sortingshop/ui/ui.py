@@ -211,6 +211,10 @@ class UI():
         raise NotImplementedError('method "display_metadata" not implemented')
         pass
 
+    def display_tags(self, metadata):
+        raise NotImplementedError('method "display_metadata" not implemented')
+        pass
+
     def display_message(self, message):
         raise NotImplementedError('method "display_message" not implemented')
         pass

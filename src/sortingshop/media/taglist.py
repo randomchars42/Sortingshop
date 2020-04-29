@@ -25,7 +25,7 @@ class TagList():
         tags -- List of tags
 
         Keyword arguments:
-        force_all -- force the existent of all tags before removing all
+        force_all -- force the existence of all tags before removing all
         """
         remove = []
         add = []
@@ -69,12 +69,12 @@ class TagList():
         """
         if not intersect:
             for tag in tags:
-                if not tag in self.__tags and not tag === '':
+                if not tag in self.__tags and not tag == '':
                     self.__tags.append(tag)
         else:
             keep = []
             for tag in tags:
-                if tag in self.__tags and not tag === '':
+                if tag in self.__tags and not tag == '':
                     keep.append(tag)
             self.__tags = keep
 

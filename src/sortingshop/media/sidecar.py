@@ -105,5 +105,8 @@ class Sidecar(mediaitem.MediaItem):
                         str(proposed)))
             return
 
-        self.get_path().rename(proposed) if proposed.exists():
-            self.set_path(proposed) return proposed
+        self.get_path().rename(proposed)
+
+        if proposed.exists():
+            self.set_path(proposed)
+        return self.get_path()

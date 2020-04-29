@@ -6,6 +6,7 @@ import wx
 import pkg_resources
 
 from . import ui
+from .. import config
 
 logger = logging.getLogger(__name__)
 
@@ -239,8 +240,11 @@ class TagPage(Page):
         """
         super(TagPage, self).__init__(parent, *args, **kwargs)
 
+        cfg = config.ConfigSingleton()
+
         # the max height and width
-        self.__max_size = 400
+        self.__max_size = cfg.get('UI', 'image_max_size', default=400,
+                variable_type='int')
 
         # construct
 

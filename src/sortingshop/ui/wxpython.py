@@ -342,6 +342,7 @@ class TagPage(Page):
  
         self.__image.SetBitmap(wx.Bitmap(image))
         self.Refresh()
+        self._sizer.Layout()
 
     def load_tagsets(self, tagsets):
         """Set the text of the tagsets widget.

@@ -266,7 +266,9 @@ class TagPage(Page):
         self.__column_1.Add(self.__command_entry, flag=wx.EXPAND, proportion=0)
 
         # metadata
-        self.__metadata = wx.TextCtrl(self, id=wx.ID_ANY,
+        ctrl_size = cfg.get('UI', 'metadata_field_size_vertical', default=300,
+                variable_type='int')
+        self.__metadata = wx.TextCtrl(self, id=wx.ID_ANY, size=(-1,ctrl_size),
                 style=wx.TE_READONLY|wx.TE_MULTILINE)
         self.__column_1.Add(self.__metadata, flag=wx.EXPAND, proportion=1)
 

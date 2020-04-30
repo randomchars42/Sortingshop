@@ -147,8 +147,8 @@ class WxPython(ui.UI):
     def display_metadata(self, metadata):
         self.__pages['tag'].load_metadata(metadata)
 
-    def display_tags(self, metadata):
-        self.__pages['tag'].load_tags(metadata)
+    def display_tags(self, taglist):
+        self.__pages['tag'].load_tags(taglist)
 
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 

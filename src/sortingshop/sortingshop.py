@@ -28,6 +28,7 @@ class Sortingshop():
     def _reset(self):
         """Reset instance variables related to media file handling."""
         self.__medialist = None
+        self.__current_mediafile = None
 
     def run(self):
         """Do"""
@@ -116,7 +117,7 @@ class Sortingshop():
         while media_file_found is False and abort is False:
             try:
                 mediafile = self.__medialist.get_mediafile(position)
-                logger.debug('load "{}"'.format(mediafile.get_name()))
+                logger.debug('load {}'.format(mediafile.get_name()))
             except FileNotFoundError as error:
                 logger.error('{} media file not found'.format(position))
                 if position == 'current':
@@ -144,9 +145,10 @@ class Sortingshop():
                 str(files_not_found)))
 
         mediafile.prepare()
+        self.__current_mediafile = mediafile
         self.__ui.display_picture(mediafile)
 
-        self.__ui.display_metadata(mediafile.get_metadata())
+        self.load_source('default')
         #self.__ui.display_tags(mediafile.get_standard_sidecar().get_taglist())
 
     def load_next_mediafile(self):
@@ -157,8 +159,26 @@ class Sortingshop():
         logger.debug('previous picture')
         self.load_mediafile('previous')
 
-    def load_source(self, index):
-        logger.info('blah')
+    def load_source(self, position):
+        logger.debug('load source {}'.format(position))
+        mediafile = self.__current_mediafile
+
+        if position == 'default':
+            cfg = config.ConfigSingleton()
+            if not cfg.get('Metadata', 'use_sidecar', variable_type='boolean',
+                    default=False):
+                self.__ui.display_tags(mediafile.get_taglist())
+            else:
+                self.__ui.display_tags(
+                    mediafile.get_standard_sidecar().get_taglist())
+        elif position == 'all':
+            self.__ui.display_metadata(mediafile.get_metadata())
+        elif position == 'next':
+            self.__ui.display_metadata(mediafile.get_metadata())
+        elif position == 'previous':
+            self.__ui.display_metadata(mediafile.get_metadata())
+        else:
+            raise ValueError
 
     def load_all_sources(self):
         logger.info('all sources')

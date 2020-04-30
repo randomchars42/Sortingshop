@@ -172,7 +172,7 @@ class MediaFile(mediaitem.MediaItem):
     def prepare(self):
         """Central function to keep your mediafiles clean."""
 
-        logger.debug('Prepare {}'.format(self.get_name()))
+        logger.debug('prepare {}'.format(self.get_name()))
 
         if not self.is_loaded():
             logger.error('could not prepare {} (not loaded)'.format(
@@ -180,7 +180,7 @@ class MediaFile(mediaitem.MediaItem):
             return
 
         if self.__is_prepared:
-            logger.info('{} is already prepared'.format(
+            logger.debug('{} already looks prepared'.format(
                 str(self.get_path())))
             return
 

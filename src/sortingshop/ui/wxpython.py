@@ -254,12 +254,17 @@ class TagPage(Page):
         self.__column_2 = wx.BoxSizer(wx.VERTICAL)
         self._sizer.Add(self.__column_2, flag=wx.EXPAND, proportion=1)
 
+        # column 1
+
         # image
         # placeholder where we will load the image into
         image = wx.Image(self.__max_size, self.__max_size)
         self.__image = wx.StaticBitmap(self, id=wx.ID_ANY,
                 bitmap=wx.Bitmap(image))
         self.__column_1.Add(self.__image, flag=wx.CENTER)
+
+        self.__infopanel = wx.StaticText(self, id=wx.ID_ANY)
+        self.__column_1.Add(self.__infopanel, flag=wx.EXPAND, proportion=0)
 
         # command entry
         self.__command_entry = CommandEntry(parent=self)
@@ -271,6 +276,8 @@ class TagPage(Page):
         self.__metadata = wx.TextCtrl(self, id=wx.ID_ANY, size=(-1,ctrl_size),
                 style=wx.TE_READONLY|wx.TE_MULTILINE)
         self.__column_1.Add(self.__metadata, flag=wx.EXPAND, proportion=1)
+
+        # column 2
 
         # tagsets
         self.__tagsets = wx.TextCtrl(self, id=wx.ID_ANY,
@@ -358,12 +365,30 @@ class TagPage(Page):
         """Set the text of the metadata widget.
 
         Positional arguments:
-        metadata -- dict of metadata to display
+        metadata -- dict of available metadata to display
         """
         text = ''
+        text += metadata.get('FileName', '') + "\n"
+        text += metadata.get('CreateDate', '') + "\n"
+        self.__infopanel.SetLabel(text)
+
+    def load_all_metadata(self, metadata):
+        """Set the text of the metadata widget.
+
+        Positional arguments:
+        metadata -- dict of available metadata to display
+        """
+        cfg = config.ConfigSingleton()
+        tag_field = cfg.get('Metadata', 'field_tags', default=None)
+
+        text = ''
+
         for key, value in metadata.items():
+            # omit tags
+            if key == tag_field:
+                continue
             text += "{}: {}\n".format(key, value)
-        self.__metadata.SetValue(text)
+        self.__infopanel.SetLabel(text)
 
     def load_tags(self, tags):
         """Set the text of the tags widget.

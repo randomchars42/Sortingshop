@@ -29,6 +29,7 @@ class Sortingshop():
         """Reset instance variables related to media file handling."""
         self.__medialist = None
         self.__current_mediafile = None
+        self.__current_sources = None
 
     def run(self):
         """Do"""
@@ -148,8 +149,8 @@ class Sortingshop():
         self.__current_mediafile = mediafile
         self.__ui.display_picture(mediafile)
 
+        self.__current_sources = None
         self.load_source('default')
-        #self.__ui.display_tags(mediafile.get_standard_sidecar().get_taglist())
 
     def load_next_mediafile(self):
         logger.debug('next picture')
@@ -162,6 +163,11 @@ class Sortingshop():
     def load_source(self, position):
         logger.debug('load source {}'.format(position))
         mediafile = self.__current_mediafile
+
+        if self.__current_sources is None:
+            self.__current_sources = 'default'
+
+        self.__ui.display_metadata(mediafile.get_metadata())
 
         if position == 'default':
             cfg = config.ConfigSingleton()

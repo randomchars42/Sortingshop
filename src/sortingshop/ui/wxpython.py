@@ -422,8 +422,9 @@ class TagPage(Page):
         tags -- TagList to display
         """
         text = ''
-        for tag in tags.get_tags():
-            text += "{}\n".format(tag)
+        if not tags is None:
+            for tag in tags.get_tags():
+                text += "{}\n".format(tag)
         self.__metadata.SetValue(text)
 
     def focus_command_entry(self):

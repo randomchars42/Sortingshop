@@ -96,7 +96,7 @@ class Sidecar(mediaitem.MediaItem):
             counter_length = len(self.__counter)
             proposed = Path(str(parent_path.parent) + '/' +
                     str(parent_path.stem) + '_' +
-                    str(self.counter).zfill(counter_length) +
+                    str(self.__counter).zfill(counter_length) +
                     parent_path.suffix + '.xmp')
 
         if proposed.exists():

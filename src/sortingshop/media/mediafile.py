@@ -25,6 +25,8 @@ class MediaFile(mediaitem.MediaItem):
         super(MediaFile, self).__init__(path)
         self.__sidecars = []
         self.__sidecar_standard_index = None
+        self.__source_index = None
+        self.__current_source = None
         self.add_sidecars(sidecars)
         self.__is_prepared = False
 
@@ -57,6 +59,97 @@ class MediaFile(mediaitem.MediaItem):
         if not self.__sidecar_standard_index is None:
             return self.__sidecars[self.__sidecar_standard_index]
         return None
+
+    def get_sidecar_at_index(self, index):
+        """Return the sidecar at the given index.
+
+        Raises IndexError if there is no sidecar with the given index.
+
+        Positional Arguments:
+        index -- integer index of the sidecar to retrieve
+        """
+        try:
+            scar = self.__sidecars[index]
+        except IndexError:
+            logger.error('no sidecar at index {}'.format(index))
+            raise IndexError
+
+        return sidecar
+
+    def get_source(self, position):
+        """Return the MetadataSource at the requested position.
+
+        Cycles through MetadataSources.
+
+        MetadataSources could be:
+          - the MediaFile itself (index -1)
+          - any Sidecar (indices 0 to n-1)
+
+        Raises FileNotFoundError if the requested sidecar file could not be
+        found.
+        Raises IndexError if not even the MediaFile (the caller) can be found
+        anymore.
+
+        Positional arguments:
+        position -- string indicating the requested file ("first", "last",
+            "next", "previous", "current")
+        """
+        cfg = config.ConfigSingleton()
+        use_sidecar = cfg.get('Metadata', 'use_sidecar',
+                variable_type='boolean', default=False)
+
+        if self.__source_index is None:
+            # start (index is None) with:
+            # - Sidecar (config: use_sidecar = True) -> index: 0
+            # - MediaFile -> index -1
+            self.__source_index = 0 if use_sidecar else -1
+
+        index = self.__source_index
+
+        if position == 'next':
+            if self.__source_index >= len(self.__sidecars) - 1:
+                index = -1
+            else:
+                index += 1
+        elif position == 'previous':
+            if self.__source_index <= -1:
+                index = len(self.__sidecars) -1
+            else:
+                index -= 1
+        elif position == 'first':
+            index = 0 if use_sidecar else -1
+        elif position == 'last':
+            index = len(self.__sidecars) - 1
+
+        if index >= 0:
+            source = self.__sidecars[index]
+        else:
+            source = self
+
+        if not source.exists():
+            # file must have been removed by the user since building the list
+            # remove it
+            if index >= 0:
+                # remove non-existend sidecar
+                del self.__sidecar[index]
+                raise FileNotFoundError
+            else:
+                # not even the MediaFile exists anymore
+                # the fake list (MediaFile + Sidecars) is "empty" so raise an
+                # IndexError
+                raise IndexError
+
+        # free up some space be unloading the current sidecar
+        if self.__source_index >= 0:
+            self.__sidecars[self.__source_index].unload()
+
+        self.__source_index = index
+        self.__current_source = source
+
+        if self.__source_index >= 0:
+            self.__current_source.load()
+
+        return self.__current_source
 
     def _unify_dates(self):
         """Write one date to all variables that represent the creation date.
@@ -229,6 +322,7 @@ class MediaFile(mediaitem.MediaItem):
         super(MediaFile, self).load()
         for index in range(len(self.__sidecars)):
             self.__sidecars[index].load()
+        self.__source_index = None
 
     def unload(self):
         """Unload self (see MediaItem) and all sidecars."""

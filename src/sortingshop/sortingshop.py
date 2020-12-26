@@ -11,6 +11,7 @@ from pathlib import Path
 from . import exiftool
 from . import config
 from .media import medialist
+from .media import taglist
 from .ui import wxpython
 from .log import log
 
@@ -29,7 +30,7 @@ class Sortingshop():
         """Reset instance variables related to media file handling."""
         self.__medialist = None
         self.__current_mediafile = None
-        self.__current_sources = None
+        self.__current_source = None
 
     def run(self):
         """Do"""
@@ -43,8 +44,8 @@ class Sortingshop():
                 'next picture', 'display the next picture')
         self.__ui.register_command('p', 'short', self.load_previous_mediafile,
                 'previous picture', 'display the previous picture')
-        self.__ui.register_command('A', 'short', self.load_all_sources,
-                'next sidecar', 'display tags from the next source')
+        #self.__ui.register_command('A', 'short', self.load_all_sources,
+        #        'next sidecar', 'display tags from the next source')
         self.__ui.register_command('N', 'short', self.load_next_source,
                 'next sidecar', 'display tags from the next source')
         self.__ui.register_command('P', 'short', self.load_previous_source,
@@ -98,9 +99,9 @@ class Sortingshop():
         """ Load a mediafile and check if it has been removed since startup.
 
         After set_working_dir the working directory is scanned and a list is
-        built. If the user (re)moves the files from that directory the change
-        will not be automagically detected so this function checks if the
-        requested file (first, last, next, previous, current) is available.
+        built. If the user (re)moves files from that directory the change
+        will not be detected so this function checks if the requested file
+        (first, last, next, previous, current) is available.
 
         Positional arguments:
         position -- string indicating the requested file ("first", "last",
@@ -137,6 +138,7 @@ class Sortingshop():
                 pass
             else:
                 media_file_found = True
+
         if not media_file_found:
             # no "current" mediafile or list is empty
             self.__ui.display_picture(None)
@@ -151,7 +153,7 @@ class Sortingshop():
         self.__ui.display_metadata(mediafile.get_metadata())
         self.__ui.display_deleted_status(mediafile.is_deleted())
 
-        self.__current_sources = None
+        self.__current_source = None
         self.load_source('default')
 
     def load_next_mediafile(self):
@@ -163,40 +165,66 @@ class Sortingshop():
         self.load_mediafile('previous')
 
     def load_source(self, position):
+        """ Load a source (and check if it has been removed since startup).
+
+        After set_working_dir the working directory is scanned and a list is
+        built. If the user (re)moves files from that directory the change
+        will not be detected so this function checks if the requested sidecar
+        (first, last, next, previous, current) is available.
+
+        Positional arguments:
+        position -- string indicating the requested file ("first", "last",
+            "next", "previous", "current")
+        """
         logger.debug('load source {}'.format(position))
-        mediafile = self.__current_mediafile
+        source_found = False
+        abort = False
+        files_not_found = 0
 
-        if self.__current_sources is None:
-            self.__current_sources = 'default'
-
-        if position == 'default':
-            cfg = config.ConfigSingleton()
-            if not cfg.get('Metadata', 'use_sidecar', variable_type='boolean',
-                    default=False):
-                self.__ui.display_tags(mediafile.get_taglist())
+        # - try to load the file
+        # - if no file is found try again (the next / previous / new first /
+        #   new last)
+        # - if "current" is requested or no file remains in the list display a
+        #   default text
+        while source_found is False and abort is False:
+            try:
+                source = self.__current_mediafile.get_source(position)
+                logger.debug('load {}'.format(source.get_name()))
+            except FileNotFoundError as error:
+                logger.error('{} source file not found'.format(position))
+                if position == 'current':
+                    self.__ui.display_message('Current source file not found ' +
+                        'anymore. Did you just remove it?')
+                    # leave loop display default and continue...
+                    abort = True
+                    pass
+                # count files
+                files_not_found += 1
+            except IndexError as error:
+                self.__ui.display_message('Media file not found anymore. ' +
+                        'Did you just remove it?')
+                self.load_next_mediafile()
             else:
-                self.__ui.display_tags(
-                    mediafile.get_standard_sidecar().get_taglist())
-        elif position == 'all':
-            self.__ui.display_metadata(mediafile.get_metadata())
-        elif position == 'next':
-            self.__ui.display_metadata(mediafile.get_metadata())
-        elif position == 'previous':
-            self.__ui.display_metadata(mediafile.get_metadata())
-        else:
-            raise ValueError
+                source_found = True
 
-    def load_all_sources(self):
-        logger.info('all sources')
+
+        if files_not_found > 0:
+            self.__ui.display_message('{} sidecar file(s) not found ' +
+                    'anymore.'.format(str(files_not_found)))
+
+        self.__current_source = source
+        self.__ui.display_tags(source.get_taglist())
 
     def load_next_source(self):
         logger.info('next source')
+        self.load_source('next')
 
     def load_previous_source(self):
         logger.info('previous source')
+        self.load_source('previous')
 
     def toggle_tags(self, tags):
-        logger.info('toggle tags')
+        logger.info('toggle tags: ' + tags)
 
 def main():
     """Run the application.

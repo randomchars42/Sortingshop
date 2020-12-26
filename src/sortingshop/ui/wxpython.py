@@ -263,7 +263,8 @@ class TagPage(Page):
                 bitmap=wx.Bitmap(image))
         self.__column_1.Add(self.__image, flag=wx.CENTER)
 
-        self.__infopanel = wx.StaticText(self, id=wx.ID_ANY)
+        self.__infopanel = wx.StaticText(self, id=wx.ID_ANY,
+                style=wx.ST_NO_AUTORESIZE|wx.ALIGN_RIGHT)
         self.__column_1.Add(self.__infopanel, flag=wx.EXPAND, proportion=0)
 
         # command entry

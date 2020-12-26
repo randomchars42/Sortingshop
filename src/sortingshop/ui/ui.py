@@ -215,6 +215,10 @@ class UI():
         raise NotImplementedError('method "display_metadata" not implemented')
         pass
 
+    def display_deleted_status(self, is_deleted):
+        raise NotImplementedError('method "display_deleted" not implemented')
+        pass
+
     def display_message(self, message):
         raise NotImplementedError('method "display_message" not implemented')
         pass

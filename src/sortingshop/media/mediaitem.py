@@ -146,7 +146,7 @@ class MediaItem():
         # subtract working directory from current path
         # yields either '.' or 'deleted'
         cfg = config.ConfigSingleton()
-        basepath = cfg.get('Paths', 'working_dir', None)
+        basepath = cfg.get('Paths', 'working_dir', default=None)
         if basepath is None:
             raise ValueError
         return str(self.__path.parent.relative_to(basepath)) == 'deleted'

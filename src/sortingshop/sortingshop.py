@@ -148,6 +148,8 @@ class Sortingshop():
         mediafile.prepare()
         self.__current_mediafile = mediafile
         self.__ui.display_picture(mediafile)
+        self.__ui.display_metadata(mediafile.get_metadata())
+        self.__ui.display_deleted_status(mediafile.is_deleted())
 
         self.__current_sources = None
         self.load_source('default')
@@ -166,8 +168,6 @@ class Sortingshop():
 
         if self.__current_sources is None:
             self.__current_sources = 'default'
-
-        self.__ui.display_metadata(mediafile.get_metadata())
 
         if position == 'default':
             cfg = config.ConfigSingleton()

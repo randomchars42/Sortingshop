@@ -150,6 +150,10 @@ class WxPython(ui.UI):
     def display_tags(self, taglist):
         self.__pages['tag'].load_tags(taglist)
 
+    def display_deleted_status(self, is_deleted):
+        self.__pages['tag'].load_deleted_status(is_deleted)
+        pass
+
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
 
@@ -263,9 +267,15 @@ class TagPage(Page):
                 bitmap=wx.Bitmap(image))
         self.__column_1.Add(self.__image, flag=wx.CENTER)
 
+        # info panel
         self.__infopanel = wx.StaticText(self, id=wx.ID_ANY,
                 style=wx.ST_NO_AUTORESIZE|wx.ALIGN_RIGHT)
         self.__column_1.Add(self.__infopanel, flag=wx.EXPAND, proportion=0)
+
+        # deleted status
+        self.__deletedpanel = wx.StaticText(self, id=wx.ID_ANY,
+                style=wx.ST_NO_AUTORESIZE)
+        self.__column_1.Add(self.__deletedpanel, flag=wx.EXPAND, proportion=0)
 
         # command entry
         self.__command_entry = CommandEntry(parent=self)
@@ -370,7 +380,7 @@ class TagPage(Page):
         """
         text = ''
         text += metadata.get('FileName', '') + "\n"
-        text += metadata.get('CreateDate', '') + "\n"
+        text += metadata.get('CreateDate', '') #+ "\n"
         self.__infopanel.SetLabel(text)
 
     def load_all_metadata(self, metadata):
@@ -390,6 +400,20 @@ class TagPage(Page):
                 continue
             text += "{}: {}\n".format(key, value)
         self.__infopanel.SetLabel(text)
+
+    def load_deleted_status(self, is_deleted):
+        """Set the text of the "deleted" status widget.
+
+        Positional arguments:
+        is_deleted -- boolean whether or not the image is deleted
+        """
+        if is_deleted:
+            self.__deletedpanel.SetLabel('DELETED')
+            self.__deletedpanel.Show()
+            self._sizer.Layout()
+        else:
+            self.__deletedpanel.Hide()
+            self._sizer.Layout()
 
     def load_tags(self, tags):
         """Set the text of the tags widget.

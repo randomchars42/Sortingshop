@@ -212,7 +212,7 @@ class UI():
         pass
 
     def display_tags(self, metadata):
-        raise NotImplementedError('method "display_metadata" not implemented')
+        raise NotImplementedError('method "display_tags" not implemented')
         pass
 
     def display_deleted_status(self, is_deleted):

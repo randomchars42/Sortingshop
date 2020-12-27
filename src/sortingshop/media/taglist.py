@@ -42,15 +42,13 @@ class TagList():
                     add += self._add_to_taglist(tag)
         else:
             # collect tags that were added / removed
-            add = []
-            remove = []
             for tag in tags:
                 if tag in self.__tags:
                     remove += self._remove_from_taglist(tag)
                 else:
                     add += self._add_to_taglist(tag)
 
-        return {'add': add, 'remove': remove}
+        return {'add': list(set(add)), 'remove': list(set(remove))}
 
     def get_tags(self):
         """Return a list of tags."""
@@ -103,7 +101,7 @@ class TagList():
         index = remove.rfind('|')
         if index > 0:
             # there's a parent
-            return [remove] + self.__remove_from_taglist(remove[0:index])
+            return [remove] + self._remove_from_taglist(remove[0:index])
         else:
             return [remove]
 
@@ -122,7 +120,7 @@ class TagList():
         index = add.rfind('|')
         if index > 0:
             # there's a parent
-            return [add] + self.__add_to_taglist(add[0:index])
+            return [add] + self._add_to_taglist(add[0:index])
         else:
             return [add]
 

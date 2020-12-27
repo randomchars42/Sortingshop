@@ -113,7 +113,7 @@ class UI():
                 # drop
                 return True
 
-            logger.debug('Command "{}" finished'.format(raw_command))
+            logger.debug('Command "{}" finished'.format(raw_command.strip()))
             # extract arguments
             arguments = [arg.strip() for arg in raw_command[2:].split(',')]
             arguments = list(filter(None, arguments))

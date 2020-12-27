@@ -77,12 +77,25 @@ class Sidecar(mediaitem.MediaItem):
 
         Adds a counter of the same length if one existed before.
 
-        Raises FileExistsError if the destination already exists.
+        Raises
+         - ValueError if parent_path is None
+         - FileNotFoundError if parent_path does not exist
+         - FileExistsError if a file with the proposed name already exists
+         - PermissionError in case of insufficient permissions
 
         Positional arguments:
         parent_path: the path of the parent (Path / string)
         """
-        parent_path = Path(parent_path)
+        if parent_path is None:
+            logger.error('No parent_path given.')
+            raise ValueError
+
+        if not isinstance(parent_path, Path):
+            parent_path = Path(parent_path)
+
+        if not parent_path.exists():
+            logger.error('No parent at "{}"'.format(str(parent_path)))
+            raise FileNotFoundError
 
         # the sidecar should be named like:
         # 1) parent.SUFFIX.xmp or
@@ -90,23 +103,11 @@ class Sidecar(mediaitem.MediaItem):
 
         # case 1
         if self.__counter is None:
-            proposed = Path(str(parent_path) + '.xmp')
+            proposed = parent_path.name + '.xmp'
         # case 2
         else:
-            counter_length = len(self.__counter)
-            proposed = Path(str(parent_path.parent) + '/' +
-                    str(parent_path.stem) + '_' +
-                    str(self.__counter).zfill(counter_length) +
+            proposed = (parent_path.stem + '_' +
+                    self.get_counter(value = False) +
                     parent_path.suffix + '.xmp')
 
-        if proposed.exists():
-            raise FileExistsError(
-                    'A file of that name already exists ("{}")'.format(
-                        str(proposed)))
-            return
-
-        self.get_path().rename(proposed)
-
-        if proposed.exists():
-            self.set_path(proposed)
-        return self.get_path()
+        return super(Sidecar, self).rename(proposed)

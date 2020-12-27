@@ -423,7 +423,9 @@ class TagPage(Page):
         """
         text = ''
         if not tags is None:
-            for tag in tags.get_tags():
+            tags = tags.get_tags()
+            tags.sort()
+            for tag in tags:
                 text += "{}\n".format(tag)
         self.__metadata.SetValue(text)
 

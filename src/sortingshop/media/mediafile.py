@@ -373,3 +373,18 @@ class MediaFile(mediaitem.MediaItem):
             self.__sidecars[index].rename(path)
 
         return path
+
+    def toggle_deleted(self):
+        """Toggle file and its sidecars: move it into './deleted/' or back .
+
+        See MediaItem.toggle_deleted().
+
+        Raises:
+         - FileExistsError if a file with this name already exists at the target
+         - PermissionError in case of insufficient permissions
+        """
+
+        for index in range(len(self.__sidecars)):
+            self.__sidecars[index].toggle_deleted()
+
+        return super(MediaFile, self).toggle_deleted()

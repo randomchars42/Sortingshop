@@ -41,9 +41,9 @@ class Sortingshop():
         self.__ui.register_event('set_working_dir', self.on_set_working_dir)
 
         self.__ui.register_command('n', 'short', self.load_next_mediafile,
-                'next picture', 'display the next picture')
+                'next mediafile', 'display the next mediafile')
         self.__ui.register_command('p', 'short', self.load_previous_mediafile,
-                'previous picture', 'display the previous picture')
+                'previous mediafile', 'display the previous mediafile')
         #self.__ui.register_command('A', 'short', self.load_all_sources,
         #        'next sidecar', 'display tags from the next source')
         self.__ui.register_command('N', 'short', self.load_next_source,
@@ -53,6 +53,9 @@ class Sortingshop():
         self.__ui.register_command('t', 'long', self.toggle_tags,
                 'toggle TAG1,TAG2', 'sets the tag if it is not present, else ' +
                 'removes it')
+        self.__ui.register_command('d', 'short', self.toggle_deleted,
+                'delete / undelete mediafile', 'moves the mediafile to ' +
+                '"./deleted/" or back')
 
         self.__ui.set_working_dir('/data/eike/Code/Test/Bilder')
 
@@ -207,7 +210,6 @@ class Sortingshop():
             else:
                 source_found = True
 
-
         if files_not_found > 0:
             self.__ui.display_message('{} sidecar file(s) not found ' +
                     'anymore.'.format(str(files_not_found)))
@@ -224,7 +226,28 @@ class Sortingshop():
         self.load_source('previous')
 
     def toggle_tags(self, tags):
-        logger.info('toggle tags: ' + tags)
+        logger.info('toggle tags: ' + ','.join(tags))
+        self.__current_source.toggle_tags(tags)
+        self.__ui.display_tags(self.__current_source.get_taglist())
+
+    def toggle_deleted(self):
+        logger.info('delete / undelete mediafile')
+        try:
+            self.__current_mediafile.toggle_deleted()
+        except FileExistsError:
+            # something has been messed up after creating the medialist
+            # consider shutting down the app
+            message = 'File "{}" exists in "./" and "./deleted/".'.format(
+                    str(self.__current_mediafile.get_path()))
+            self.__ui.display_message(message)
+        except ValueError:
+            self.__ui.display_message('Oops... something went wrong.')
+        except PermissionError:
+            self.__ui.display_message(
+                    'Seems you don\'t have proper permissions.')
+        except FileNotFoundError:
+            self.__ui.display_message('Ooops... something went wrong.')
+        self.__ui.display_deleted_status(self.__current_mediafile.is_deleted())
 
 def main():
     """Run the application.

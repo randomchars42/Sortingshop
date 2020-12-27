@@ -225,23 +225,120 @@ class MediaItem():
         """Return the taglist."""
         return self.__taglist
 
-    def rename(self, name=None):
-        """Rename the file and return the new Path.
+    def toggle_tags(self, tags):
+        """Toggle the tags.
+
+        For toggle mechanism see TagList.toggle_tags(). This function only
+        writes the result into the corresponding file.
+
+        Positional arguments:
+        tags -- List of tags
+        """
+        tags = self.get_taglist().toggle_tags(tags, force_all=False)
+        command = ['-overwrite_original']
+        if len(tags['remove']) > 0:
+            tags['remove'].sort()
+            for tag in tags['remove']:
+                command += ['-hierarchicalSubject-=' + tag + '']
+        if len(tags['add']) > 0:
+            tags['add'].sort()
+            for tag in tags['add']:
+                command += ['-hierarchicalSubject+=' + tag + '']
+        command += [str(self.get_path())]
+        self._exiftool.do(*command)
+        return self.get_taglist()
+
+    def set_rating(self, rating):
+        # exiftool -overwrite_original -XMP:Rating="$rating" "$file_current_name.xmp" >> $log_exiftool
+        pass
+
+    def get_rating(self):
+        # rating=$(exiftool -XMP:Rating -b ${1}.xmp)
+        pass
+
+    def move(self, target):
+        """Base function for moving a file and returning the new Path.
+
+        If a directory is passed in as target the name will be kept.
+        If a filename (without "/" or "\") is given the file will be renamed.
 
         Raises
-         - ValueError if name is None
-         - FileExistsError if a file with the proposed name already exists
+         - ValueError if target is None
+         - FileExistsError if a file at the proposed path already exists
+         - PermissionError in case of insufficient permissions
 
         Keyword arguments:
-        name -- string, the name to rename the file to
+        target -- Path or string, the target to move the file to
         """
-        if name is None:
+        if target is None:
+            logger.error('No target given')
             raise ValueError
-        target = Path(name)
+
+        if not isinstance(target, Path):
+            target = Path(target)
+
+        if not str(target).find('\\') and not str(target).find('/'):
+            # the target is only a name not a path (can't find "/" or "\")
+            # so add the base path, as Path() would interpret it as relative to
+            # the current working directory of the filesystem
+            path = self.get_path().parent
+            target = path / Path(target)
+        elif target.is_dir():
+            target = target / Path(self.get_name())
 
         if target.exists():
+            logger.error('File "{}" already exists'.format(str(target)))
             raise FileExistsError
 
-        self.__path = self.__path.rename(target)
+        try:
+            self.get_path().rename(target)
+            self.set_path(target)
+        except PermissionError:
+            logger.error('Insufficient permissions to rename file "{}" ' +
+                'to "{}"'.format(str(self.get_path(), str(target))))
+            raise PermissionError
 
-        return self.__path
+        return self.get_path()
+
+    def rename(self, name=None):
+        """Rename the file (keeping the path) and return the new Path.
+
+        Currently same as self.move() but checks of name is not a path.
+
+        Raises
+         - ValueError if name is None or is a path (containing "\" or "/"")
+         - FileExistsError if a file with the proposed name already exists
+         - PermissionError in case of insufficient permissions
+
+        Keyword arguments:
+        name -- string, the name to rename the file to (not the full path)
+        """
+        if name is None:
+            logger.error('No name given')
+            raise ValueError
+        elif name.find('\\') > -1 or name.find('/') > -1:
+            logger.error('Proposed name: "{}" is a path'.format(name))
+            raise ValueError
+
+        return self.move(name)
+
+    def toggle_deleted(self):
+        """Delete a file: move it into './deleted/' or back to './'.
+
+        Raises:
+         - FileExistsError if a file with this name already exists at the target
+         - PermissionError in case of insufficient permissions
+        """
+        is_deleted = self.is_deleted()
+
+        if is_deleted:
+            # move the file back to the working dir
+            target = self.get_path().parent.parent
+        else:
+            # check if a "deleted" directory exists
+            path_deleted = self.get_path().parent / Path('deleted')
+            if not path_deleted.exists():
+                path_deleted.mkdir()
+            target = path_deleted
+
+        return self.move(target)

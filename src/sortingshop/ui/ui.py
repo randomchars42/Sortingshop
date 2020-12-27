@@ -177,19 +177,15 @@ class UI():
 
     def construct(self):
         raise NotImplementedError('method "contruct" not implemented')
-        pass
 
     def run(self):
         raise NotImplementedError('method "run" not implemented')
-        pass
 
     def display_tagsets(self, tagsets):
         raise NotImplementedError('method "display_tagsets" not implemented')
-        pass
 
     def display_shortcuts(self, shortcuts):
         raise NotImplementedError('method "display_shortcuts" not implemented')
-        pass
 
     def display_picture(self, picture_path = None):
         """Display the given picture.
@@ -201,28 +197,23 @@ class UI():
         picture_path -- path to the picture (string / Path)
         """
         raise NotImplementedError('method "display_pictures" not implemented')
-        pass
 
     def display_sources(self, sources):
         raise NotImplementedError('method "display_sources" not implemented')
-        pass
 
     def display_metadata(self, metadata):
         raise NotImplementedError('method "display_metadata" not implemented')
-        pass
 
     def display_tags(self, metadata):
         raise NotImplementedError('method "display_tags" not implemented')
-        pass
 
     def display_deleted_status(self, is_deleted):
         raise NotImplementedError('method "display_deleted" not implemented')
-        pass
 
     def display_message(self, message):
         raise NotImplementedError('method "display_message" not implemented')
-        pass
 
     def display_dialog(self, message, dialog_type="yesno"):
         raise NotImplementedError('method "display_dialog" not implemented')
-        pass
+
+

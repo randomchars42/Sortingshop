@@ -4,17 +4,17 @@ import logging
 from pathlib import Path
 import re
 
-from . import mediaitem
+from . import metadatasource
 from . import sidecar
 from .. import config
 
 logger = logging.getLogger(__name__)
 
-class MediaFile(mediaitem.MediaItem):
+class MediaFile(metadatasource.MetadataSource):
     """"""
 
     def __init__(self, path, sidecars=[]):
-        """Store the path (MediaItem.__init__) and create list of sidecars.
+        """Store the path (MetadataSource.__init__) and create list of sidecars.
 
         Positional arguments:
         path -- the path of the file (string / Path)
@@ -318,14 +318,14 @@ class MediaFile(mediaitem.MediaItem):
         self.__is_prepared = True
 
     def load(self):
-        """Load self (see MediaItem) and all sidecars."""
+        """Load self (see MetadataSource) and all sidecars."""
         super(MediaFile, self).load()
         for index in range(len(self.__sidecars)):
             self.__sidecars[index].load()
         self.__source_index = None
 
     def unload(self):
-        """Unload self (see MediaItem) and all sidecars."""
+        """Unload self (see MetadataSource) and all sidecars."""
         super(MediaFile, self).unload()
         for index in range(len(self.__sidecars)):
             self.__sidecars[index].unload()
@@ -377,7 +377,7 @@ class MediaFile(mediaitem.MediaItem):
     def toggle_deleted(self):
         """Toggle file and its sidecars: move it into './deleted/' or back .
 
-        See MediaItem.toggle_deleted().
+        See MetadataSource.toggle_deleted().
 
         Raises:
          - FileExistsError if a file with this name already exists at the target

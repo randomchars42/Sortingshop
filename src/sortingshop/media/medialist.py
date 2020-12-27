@@ -224,7 +224,7 @@ class MediaList():
         return self.__missing_parents
 
     def get_not_accessible_items(self):
-        """Return a list of MediaItems without proper access."""
+        """Return a list of MetadataSources without proper access."""
         return self.__no_access
 
     def get_duplicate_name(self):

@@ -10,10 +10,10 @@ from . import taglist
 
 logger = logging.getLogger(__name__)
 
-class MediaItem():
+class MetadataSource():
     """Base class for media files and sidecars.
 
-    Communicates with ExifTool. MediaItems are identified with their paths.
+    Communicates with ExifTool. MetadataSources are identified with their paths.
     """
 
     def __init__(self, path):

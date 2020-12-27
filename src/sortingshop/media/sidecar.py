@@ -3,11 +3,11 @@
 import logging
 from pathlib import Path
 
-from . import mediaitem
+from . import metadatasource
 
 logger = logging.getLogger(__name__)
 
-class Sidecar(mediaitem.MediaItem):
+class Sidecar(metadatasource.MetadataSource):
     """Represent the relevant parts of a sidecar file (.xmp).
 
     The sidecar should be named like:
@@ -16,7 +16,7 @@ class Sidecar(mediaitem.MediaItem):
     """
 
     def __init__(self, path):
-        """Set the path (MediaItem.__init__) and try to find a parent.
+        """Set the path (MetadataSource.__init__) and try to find a parent.
 
         Positional arguments:
         path -- the path (string or Path)

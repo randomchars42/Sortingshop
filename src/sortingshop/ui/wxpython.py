@@ -125,12 +125,10 @@ class WxPython(ui.UI):
         self.__frame.Fit()
 
     def display_tagsets(self, tagsets):
-        raise NotImplementedError('method "display_tagsets" not implemented')
-        pass
+        self.__pages['tag'].load_tagsets(tagsets)
 
     def display_shortcuts(self, shortcuts):
         raise NotImplementedError('method "display_shortcuts" not implemented')
-        pass
 
     def display_picture(self, mediafile = None):
         """Display the given picture.
@@ -142,7 +140,6 @@ class WxPython(ui.UI):
 
     def display_sources(self, sources):
         raise NotImplementedError('method "display_sources" not implemented')
-        pass
 
     def display_metadata(self, metadata):
         self.__pages['tag'].load_metadata(metadata)
@@ -152,14 +149,12 @@ class WxPython(ui.UI):
 
     def display_deleted_status(self, is_deleted):
         self.__pages['tag'].load_deleted_status(is_deleted)
-        pass
 
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
 
     def display_dialog(self, message, dialog_type="yesno"):
         raise NotImplementedError('method "display_dialog" not implemented')
-        pass
 
 class Page(wx.Panel):
     """Base class for all pages of the app."""
@@ -364,13 +359,41 @@ class TagPage(Page):
         self.Refresh()
         self._sizer.Layout()
 
-    def load_tagsets(self, tagsets):
+    def load_tagsets(self, metadata):
+    #def load_tagsets(self, tagsets):
         """Set the text of the tagsets widget.
 
         Positional arguments:
         tagsets -- the tagsets to display
         """
-        self.__tagsets.SetValue(tagsets)
+        cfg = config.ConfigSingleton()
+        tag_field = cfg.get('Metadata', 'field_tags', default=None)
+
+        text = ''
+
+        for key, value in metadata.items():
+            # omit tags
+            if key == tag_field:
+                continue
+            text += "{}: {}\n".format(key, value)
+        self.__tagsets.SetValue(text)
+        #self.__tagsets.SetValue(tagsets)
+
+    def _format_rating_as_unicode(self, rating):
+        """Format XMP:Rating (-1 [rejected], 0 - 5) as stars."""
+        try:
+            num = int(rating)
+        except ValueError:
+            logger.error('Invalid rating "{}" given'.format(rating))
+            num = 0
+        if num == -1:
+            return "\U0001F5D1"
+        elif -1 < num < 6:
+            return (num * "\u2605").ljust(5, "\u2606")
+        else:
+            if not num == 0:
+                logger.error('Invalid rating "{}" given'.format(rating))
+            return (5 * "\u2606")
 
     def load_metadata(self, metadata):
         """Set the text of the metadata widget.
@@ -380,6 +403,7 @@ class TagPage(Page):
         """
         text = ''
         text += metadata.get('FileName', '') + "\n"
+        text += self._format_rating_as_unicode(metadata.get('Rating', '')) + "\n"
         text += metadata.get('CreateDate', '') #+ "\n"
         self.__infopanel.SetLabel(text)
 

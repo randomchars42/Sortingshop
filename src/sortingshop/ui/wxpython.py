@@ -27,6 +27,8 @@ class WxPython(ui.UI):
         self.__homepage = 'home'
         self.__current_page = self.__homepage
         self.__last_page = ''
+        self.__metadata = {}
+        self.clear()
 
     def construct(self):
         """Construct the frame and its layout."""
@@ -141,14 +143,29 @@ class WxPython(ui.UI):
     def display_sources(self, sources):
         raise NotImplementedError('method "display_sources" not implemented')
 
+    def clear(self):
+        """Prepare for the next mediafile."""
+        self.__metadata = {
+                'name': '',
+                'rating': 0,
+                'date': '',
+                'deleted': False}
+
     def display_metadata(self, metadata):
-        self.__pages['tag'].load_metadata(metadata)
+        self.__metadata['name'] = metadata.get('FileName',
+                self.__metadata['name'])
+        self.__metadata['rating'] = metadata.get('Rating',
+                self.__metadata['rating'])
+        self.__metadata['date'] = metadata.get('CreateDate',
+                self.__metadata['date'])
+        self.__pages['tag'].load_metadata(self.__metadata)
 
     def display_tags(self, taglist):
         self.__pages['tag'].load_tags(taglist)
 
     def display_deleted_status(self, is_deleted):
-        self.__pages['tag'].load_deleted_status(is_deleted)
+        self.__metadata['deleted'] = is_deleted
+        self.__pages['tag'].load_metadata(self.__metadata)
 
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
@@ -262,15 +279,10 @@ class TagPage(Page):
                 bitmap=wx.Bitmap(image))
         self.__column_1.Add(self.__image, flag=wx.CENTER)
 
-        # info panel
-        self.__infopanel = wx.StaticText(self, id=wx.ID_ANY,
-                style=wx.ST_NO_AUTORESIZE|wx.ALIGN_RIGHT)
-        self.__column_1.Add(self.__infopanel, flag=wx.EXPAND, proportion=0)
-
-        # deleted status
-        self.__deletedpanel = wx.StaticText(self, id=wx.ID_ANY,
-                style=wx.ST_NO_AUTORESIZE)
-        self.__column_1.Add(self.__deletedpanel, flag=wx.EXPAND, proportion=0)
+        # metadata
+        self.__metadata_panel = wx.StaticText(self, id=wx.ID_ANY,
+                style=wx.ST_NO_AUTORESIZE|wx.ALIGN_CENTRE_HORIZONTAL)
+        self.__column_1.Add(self.__metadata_panel, flag=wx.EXPAND, proportion=0)
 
         # command entry
         self.__command_entry = CommandEntry(parent=self)
@@ -387,7 +399,8 @@ class TagPage(Page):
             logger.error('Invalid rating "{}" given'.format(rating))
             num = 0
         if num == -1:
-            return "\U0001F5D1"
+            #return "\U0001F6AE" # "put litter in it's place" (looks weird)
+            return "\U0001F5D1" # "wastebasket"
         elif -1 < num < 6:
             return (num * "\u2605").ljust(5, "\u2606")
         else:
@@ -402,10 +415,11 @@ class TagPage(Page):
         metadata -- dict of available metadata to display
         """
         text = ''
-        text += metadata.get('FileName', '') + "\n"
-        text += self._format_rating_as_unicode(metadata.get('Rating', '')) + "\n"
-        text += metadata.get('CreateDate', '') #+ "\n"
-        self.__infopanel.SetLabel(text)
+        text += metadata['name']
+        text += (' (DELETED)' if metadata['deleted'] else '' ) + "\n"
+        text += metadata['date'] + "\n"
+        text += self._format_rating_as_unicode(metadata['rating']) #+ "\n"
+        self.__metadata_panel.SetLabel(text)
 
     def load_all_metadata(self, metadata):
         """Set the text of the metadata widget.
@@ -424,20 +438,6 @@ class TagPage(Page):
                 continue
             text += "{}: {}\n".format(key, value)
         self.__infopanel.SetLabel(text)
-
-    def load_deleted_status(self, is_deleted):
-        """Set the text of the "deleted" status widget.
-
-        Positional arguments:
-        is_deleted -- boolean whether or not the image is deleted
-        """
-        if is_deleted:
-            self.__deletedpanel.SetLabel('DELETED')
-            self.__deletedpanel.Show()
-            self._sizer.Layout()
-        else:
-            self.__deletedpanel.Hide()
-            self._sizer.Layout()
 
     def load_tags(self, tags):
         """Set the text of the tags widget.

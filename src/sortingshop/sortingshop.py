@@ -152,7 +152,9 @@ class Sortingshop():
 
         mediafile.prepare()
         self.__current_mediafile = mediafile
+        self.__ui.clear()
         self.__ui.display_picture(mediafile)
+        self.__ui.display_metadata(mediafile.get_metadata())
         self.__ui.display_deleted_status(mediafile.is_deleted())
 
         self.__current_source = None
@@ -215,9 +217,10 @@ class Sortingshop():
 
         self.__current_source = source
         # TODO: move:
-        self.__ui.display_metadata(source.get_metadata())
         self.__ui.display_tagsets(source.get_metadata())
         #
+        self.__ui.display_metadata(
+                {'Rating': source.get_metadata().get('Rating', 0)})
         self.__ui.display_tags(source.get_taglist())
 
     def load_next_source(self):

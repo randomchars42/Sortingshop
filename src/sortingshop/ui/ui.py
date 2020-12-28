@@ -201,6 +201,9 @@ class UI():
     def display_sources(self, sources):
         raise NotImplementedError('method "display_sources" not implemented')
 
+    def clear(self):
+        raise NotImplementedError('method "clear" not implemented')
+
     def display_metadata(self, metadata):
         raise NotImplementedError('method "display_metadata" not implemented')
 

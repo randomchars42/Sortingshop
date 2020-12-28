@@ -139,10 +139,6 @@ class MediaFile(metadatasource.MetadataSource):
                 # IndexError
                 raise IndexError
 
-        # free up some space be unloading the current sidecar
-        if self.__source_index >= 0:
-            self.__sidecars[self.__source_index].unload()
-
         self.__source_index = index
         self.__current_source = source
 

@@ -133,7 +133,7 @@ class UI():
             # case 3
             logger.debug('Unfinished command ("{}"), waiting'.format(
                 raw_command))
-            # drop
+            # do not drop
             return False
 
     def register_event(self, event, callback):

@@ -56,6 +56,20 @@ class Sortingshop():
         self.__ui.register_command('d', 'short', self.toggle_deleted,
                 'delete / undelete mediafile', 'moves the mediafile to ' +
                 '"./deleted/" or back')
+        self.__ui.register_command('r', 'short', lambda: self.set_rating(-1),
+                'rating: rejected', 'rate the mediafile as rejected')
+        self.__ui.register_command('0', 'short', lambda: self.set_rating(0),
+                'rating: 0', 'rate the mediafile as a 0')
+        self.__ui.register_command('1', 'short', lambda: self.set_rating(1),
+                'rating: 1', 'rate the mediafile as a 1')
+        self.__ui.register_command('2', 'short', lambda: self.set_rating(2),
+                'rating: 2', 'rate the mediafile as a 2')
+        self.__ui.register_command('3', 'short', lambda: self.set_rating(3),
+                'rating: 3', 'rate the mediafile as a 3')
+        self.__ui.register_command('4', 'short', lambda: self.set_rating(4),
+                'rating: 4', 'rate the mediafile as a 4')
+        self.__ui.register_command('5', 'short', lambda: self.set_rating(5),
+                'rating: 5', 'rate the mediafile as a 5')
 
         self.__ui.set_working_dir('/data/eike/Code/Test/Bilder')
 
@@ -233,7 +247,12 @@ class Sortingshop():
 
     def toggle_tags(self, tags):
         logger.info('toggle tags: ' + ','.join(tags))
-        self.__current_source.toggle_tags(tags)
+        try:
+            self.__current_source.toggle_tags(tags)
+        except ChildProcessError:
+            self.__ui.display_message('Tags were not updated.')
+        except FileNotFoundError:
+            self.__ui.display_message('File not found anymore.')
         self.__ui.display_tags(self.__current_source.get_taglist())
 
     def toggle_deleted(self):
@@ -252,8 +271,20 @@ class Sortingshop():
             self.__ui.display_message(
                     'Seems you don\'t have proper permissions.')
         except FileNotFoundError:
-            self.__ui.display_message('Ooops... something went wrong.')
+            self.__ui.display_message('File not found anymore.')
         self.__ui.display_deleted_status(self.__current_mediafile.is_deleted())
+
+    def set_rating(self, rating):
+        try:
+            self.__current_source.set_rating(rating)
+        except ValueError:
+            self.__ui.display_message('Oops... something went wrong.')
+        except ChildProcessError:
+            self.__ui.display_message('Rating was not updated.')
+        except FileNotFoundError:
+            self.__ui.display_message('File not found anymore.')
+        self.__ui.display_metadata({'Rating':
+            self.__current_source.get_metadata().get('Rating', 0)})
 
 def main():
     """Run the application.

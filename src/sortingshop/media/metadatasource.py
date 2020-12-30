@@ -231,9 +231,16 @@ class MetadataSource():
         For toggle mechanism see TagList.toggle_tags(). This function only
         writes the result into the corresponding file.
 
+        Raises
+         - FileNotFoundError if file could not be found
+         - ChildProcessError if update of file failed
+
         Positional arguments:
         tags -- List of tags
         """
+        if not self.exists():
+            logger.error('file "{}" not found'.format(str(self.get_path())))
+            raise FileNotFoundError
         tags = self.get_taglist().toggle_tags(tags, force_all=False)
         command = ['-overwrite_original']
         if len(tags['remove']) > 0:
@@ -245,16 +252,47 @@ class MetadataSource():
             for tag in tags['add']:
                 command += ['-hierarchicalSubject+=' + tag + '']
         command += [str(self.get_path())]
-        self._exiftool.do(*command)
+        result = self._exiftool.do(*command)
+        if result['updated'] != 1:
+            logger.error(
+                    'exiftool command "{}" failed'.format(' '.join(command)))
+            raise ChildProcessError
         return self.get_taglist()
 
     def set_rating(self, rating):
-        # exiftool -overwrite_original -XMP:Rating="$rating" "$file_current_name.xmp" >> $log_exiftool
-        pass
+        """Update rating (0 - 5, -1 for rejected).
+
+        Raises
+         - ValueError in case of an incorrect rating
+         - FileNotFoundError if file could not be found
+         - ChildProcessError if update of file failed
+
+        Positional arguments:
+        rating -- int (0 - 5, -1 for rejected)
+        """
+        if not self.exists():
+            logger.error('file "{}" not found'.format(str(self.get_path())))
+            raise FileNotFoundError
+
+        if not isinstance(rating, int) or not -1 <= rating <= 5:
+            logger.error('invalid rating "{}"'.format(str(rating)))
+            raise ValueError
+
+        command = ['-overwrite_original', '-XMP:Rating=' + str(rating),
+                str(self.get_path())]
+
+        result = self._exiftool.do(*command)
+
+        if result['updated'] != 1:
+            logger.error(
+                    'exiftool command "{}" failed'.format(' '.join(command)))
+            raise ChildProcessError
+
+        self.__metadata['Rating'] = rating
+        return rating
 
     def get_rating(self):
-        # rating=$(exiftool -XMP:Rating -b ${1}.xmp)
-        pass
+        return self.__metadata.get('Rating', 0)
 
     def move(self, target):
         """Base function for moving a file and returning the new Path.

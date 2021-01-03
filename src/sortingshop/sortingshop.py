@@ -12,6 +12,7 @@ from . import exiftool
 from . import config
 from .media import medialist
 from .media import taglist
+from .media import tagsets
 from .ui import wxpython
 from .log import log
 
@@ -23,6 +24,7 @@ class Sortingshop():
     def __init__(self):
         """Initialise UI ... ."""
         self.__ui = wxpython.WxPython()
+        self.__tagsets = tagsets.Tagsets()
         self._reset()
         logger.info('initialised')
 
@@ -110,6 +112,16 @@ class Sortingshop():
             logger.error(error, exc_info=True)
             self.__medialist = None
             return
+
+        # load tagsets
+        try:
+            self.__tagsets.load_tagsets()
+        except PermissionError as error:
+            self.__ui.display_message(
+                    'Insufficient rights to open tagsets file')
+            logger.error(error, exc_info=True)
+
+        self.__ui.display_tagsets(self.__tagsets.get_tagsets())
         self.load_mediafile('first')
 
     def load_mediafile(self, position):
@@ -168,7 +180,7 @@ class Sortingshop():
         self.__current_mediafile = mediafile
         self.__ui.clear()
         self.__ui.display_picture(mediafile)
-        self.__ui.display_metadata(mediafile.get_metadata())
+        self.__ui.display_info(mediafile.get_metadata())
         self.__ui.display_deleted_status(mediafile.is_deleted())
 
         self.__current_source = None
@@ -230,10 +242,8 @@ class Sortingshop():
                     'anymore.'.format(str(files_not_found)))
 
         self.__current_source = source
-        # TODO: move:
-        self.__ui.display_tagsets(source.get_metadata())
-        #
-        self.__ui.display_metadata(
+        self.__ui.display_metadata(source.get_metadata())
+        self.__ui.display_info(
                 {'Rating': source.get_metadata().get('Rating', 0)})
         self.__ui.display_tags(source.get_taglist())
 
@@ -245,8 +255,31 @@ class Sortingshop():
         logger.info('previous source')
         self.load_source('previous')
 
-    def toggle_tags(self, tags):
-        logger.info('toggle tags: ' + ','.join(tags))
+    def toggle_tags(self, user_input):
+        """Add / remove tags.
+
+        The user may input a list of tags and or abbreviations which will be
+        expanded with the help of tagsets.
+        """
+        # expand abbreviations entered by the user
+        tags = []
+        for part in user_input:
+            # if a non-empty array is returned the part of the user input was an
+            # abbreviation
+            # if no matching tagset is found treat the part as a new tag
+            tagset = self.__tagsets.get_tagset(part)
+            if len(tagset) > 0:
+                logger.debug('extended abbreviation "{}" -> {}'.format(
+                    part, ','.join(tagset)))
+                tags.extend(tagset)
+            else:
+                tags.append(part)
+
+        # filter duplicates & sort
+        tags = list(set(tags))
+        tags.sort()
+        logger.info('toggle tags: {}'.format(','.join(tags)))
+
         try:
             self.__current_source.toggle_tags(tags)
         except ChildProcessError:

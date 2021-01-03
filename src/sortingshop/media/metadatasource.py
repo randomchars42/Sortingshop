@@ -208,7 +208,7 @@ class MetadataSource():
         return self._is_loaded
 
     def get_metadata(self, keyword=None, default='undefined'):
-        """ Return all metadata or just a specific variable.
+        """Return all metadata or just a specific variable.
 
         Names are defined here: https://exiftool.org/TagNames/
 

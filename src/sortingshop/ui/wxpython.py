@@ -152,13 +152,16 @@ class WxPython(ui.UI):
                 'deleted': False}
 
     def display_metadata(self, metadata):
+        self.__pages['tag'].load_metadata(metadata)
+
+    def display_info(self, metadata):
         self.__metadata['name'] = metadata.get('FileName',
                 self.__metadata['name'])
         self.__metadata['rating'] = metadata.get('Rating',
                 self.__metadata['rating'])
         self.__metadata['date'] = metadata.get('CreateDate',
                 self.__metadata['date'])
-        self.__pages['tag'].load_metadata(self.__metadata)
+        self.__pages['tag'].load_info(self.__metadata)
 
     def display_tags(self, taglist):
         self.__pages['tag'].load_tags(taglist)
@@ -264,11 +267,13 @@ class TagPage(Page):
 
         # construct
 
-        # two columns
+        # columns
         self.__column_1 = wx.BoxSizer(wx.VERTICAL)
         self._sizer.Add(self.__column_1, flag=wx.EXPAND, proportion=2)
         self.__column_2 = wx.BoxSizer(wx.VERTICAL)
         self._sizer.Add(self.__column_2, flag=wx.EXPAND, proportion=1)
+        self.__column_3 = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Add(self.__column_3, flag=wx.EXPAND, proportion=1)
 
         # column 1
 
@@ -280,9 +285,9 @@ class TagPage(Page):
         self.__column_1.Add(self.__image, flag=wx.CENTER)
 
         # metadata
-        self.__metadata_panel = wx.StaticText(self, id=wx.ID_ANY,
+        self.__info_panel = wx.StaticText(self, id=wx.ID_ANY,
                 style=wx.ST_NO_AUTORESIZE|wx.ALIGN_CENTRE_HORIZONTAL)
-        self.__column_1.Add(self.__metadata_panel, flag=wx.EXPAND, proportion=0)
+        self.__column_1.Add(self.__info_panel, flag=wx.EXPAND, proportion=0)
 
         # command entry
         self.__command_entry = CommandEntry(parent=self)
@@ -301,6 +306,13 @@ class TagPage(Page):
         self.__tagsets = wx.TextCtrl(self, id=wx.ID_ANY,
                 style=wx.TE_READONLY|wx.TE_MULTILINE)
         self.__column_2.Add(self.__tagsets, flag=wx.EXPAND, proportion=1)
+
+        # column 3
+
+        # metadata
+        self.__metadata_panel = wx.TextCtrl(self, id=wx.ID_ANY,
+                style=wx.TE_READONLY|wx.TE_MULTILINE)
+        self.__column_3.Add(self.__metadata_panel, flag=wx.EXPAND, proportion=1)
 
         # finished construction
 
@@ -371,25 +383,17 @@ class TagPage(Page):
         self.Refresh()
         self._sizer.Layout()
 
-    def load_tagsets(self, metadata):
-    #def load_tagsets(self, tagsets):
+    def load_tagsets(self, tagsets):
         """Set the text of the tagsets widget.
 
         Positional arguments:
-        tagsets -- the tagsets to display
+        tagsets -- dict returned by media.tagsets.Tagsets.get_tagsets()
         """
-        cfg = config.ConfigSingleton()
-        tag_field = cfg.get('Metadata', 'field_tags', default=None)
-
         text = ''
 
-        for key, value in metadata.items():
-            # omit tags
-            if key == tag_field:
-                continue
-            text += "{}: {}\n".format(key, value)
+        for abbr, tags in tagsets.items():
+            text += "{}: {}\n".format(abbr, ','.join(tags))
         self.__tagsets.SetValue(text)
-        #self.__tagsets.SetValue(tagsets)
 
     def _format_rating_as_unicode(self, rating):
         """Format XMP:Rating (-1 [rejected], 0 - 5) as stars."""
@@ -408,8 +412,8 @@ class TagPage(Page):
                 logger.error('Invalid rating "{}" given'.format(rating))
             return (5 * "\u2606")
 
-    def load_metadata(self, metadata):
-        """Set the text of the metadata widget.
+    def load_info(self, metadata):
+        """Set the text of the info widget.
 
         Positional arguments:
         metadata -- dict of available metadata to display
@@ -419,9 +423,9 @@ class TagPage(Page):
         text += (' (DELETED)' if metadata['deleted'] else '' ) + "\n"
         text += metadata['date'] + "\n"
         text += self._format_rating_as_unicode(metadata['rating']) #+ "\n"
-        self.__metadata_panel.SetLabel(text)
+        self.__info_panel.SetLabel(text)
 
-    def load_all_metadata(self, metadata):
+    def load_metadata(self, metadata):
         """Set the text of the metadata widget.
 
         Positional arguments:
@@ -437,7 +441,7 @@ class TagPage(Page):
             if key == tag_field:
                 continue
             text += "{}: {}\n".format(key, value)
-        self.__infopanel.SetLabel(text)
+        self.__metadata_panel.SetValue(text)
 
     def load_tags(self, tags):
         """Set the text of the tags widget.

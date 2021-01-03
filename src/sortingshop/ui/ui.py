@@ -165,13 +165,23 @@ class UI():
     def set_working_dir(self, working_dir):
         """Set the working directory and fire "set_working_directory".
 
-        Raises FileNotFoundError if the given directory doesn't exist.
+        Raises:
+         - FileNotFoundError if the given directory doesn't exist
+         - NotADirectoryError if not a directory
 
         Positional arguments:
         working_dir -- the working directory (string)
         """
-        logger.debug('set working_dir: "{}"'.format(str(working_dir)))
+        if working_dir.strip() == '':
+            return
         working_dir = Path(working_dir)
+        if not working_dir.exists():
+            logger.error('Directory "{}" not found'.format(working_dir))
+            raise FileNotFoundError
+        if not working_dir.is_dir():
+            logger.error('Path not a "{}" directory'.format(working_dir))
+            raise NotADirectoryError
+        logger.debug('set working_dir: "{}"'.format(str(working_dir)))
         self._working_dir = working_dir
         self.fire_event('set_working_dir', {'working_dir': working_dir})
 

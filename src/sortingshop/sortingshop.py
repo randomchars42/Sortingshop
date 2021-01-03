@@ -34,7 +34,7 @@ class Sortingshop():
         self.__current_mediafile = None
         self.__current_source = None
 
-    def run(self):
+    def run(self, working_dir=''):
         """Do"""
         # construct
         self.__ui.construct()
@@ -73,7 +73,11 @@ class Sortingshop():
         self.__ui.register_command('5', 'short', lambda: self.set_rating(5),
                 'rating: 5', 'rate the mediafile as a 5')
 
-        self.__ui.set_working_dir('/data/eike/Code/Test/Bilder')
+        if working_dir == '':
+            cfg = config.ConfigSingleton()
+            working_dir = cfg.get('Paths', 'working_dir', default='')
+            print(working_dir)
+        self.__ui.set_working_dir(working_dir)
 
         # needs to be the last call in this function
         self.__ui.run()

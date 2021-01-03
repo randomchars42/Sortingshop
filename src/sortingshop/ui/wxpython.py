@@ -74,6 +74,7 @@ class WxPython(ui.UI):
         self.__pages[self.__homepage] = homepage
         # set actions to events
         homepage.bind_to_button('tag', lambda event: self._display_page('tag'))
+        homepage.bind_to_dir_picker(self._pick_working_dir_handler)
 
         # the page used to tag individual media files
         tag_page = TagPage(panel, layout=wx.HORIZONTAL,
@@ -176,6 +177,25 @@ class WxPython(ui.UI):
     def display_dialog(self, message, dialog_type="yesno"):
         raise NotImplementedError('method "display_dialog" not implemented')
 
+    def _pick_working_dir_handler(self, event):
+        working_dir = event.GetPath()
+        self.set_working_dir(working_dir)
+
+    def set_working_dir(self, working_dir):
+        if working_dir.strip() == '':
+            return
+        working_dir_path = Path(working_dir)
+        if not working_dir_path.exists():
+            logger.error('Directory "{}" not found'.format(working_dir))
+            return
+        if not working_dir_path.is_dir():
+            logger.error('Path not a "{}" directory'.format(working_dir))
+            return
+        if working_dir == str(self._working_dir):
+            return
+        self.__pages[self.__homepage].set_dir_picker_path(working_dir)
+        super(WxPython, self).set_working_dir(working_dir)
+
 class Page(wx.Panel):
     """Base class for all pages of the app."""
 
@@ -233,7 +253,13 @@ class HomePage(Page):
 
         self.__buttons = {}
 
-        self.__buttons['tag'] = wx.Button(parent=self, label='Tag')
+        self.__dir_picker = wx.DirPickerCtrl(parent=self, path=str(Path.home()),
+              message='Choose a directory',
+              style=wx.DIRP_DIR_MUST_EXIST|wx.DIRP_SMALL|wx.DIRP_USE_TEXTCTRL)
+        self._sizer.Add(self.__dir_picker, flag=wx.ALIGN_CENTER|wx.EXPAND)
+
+        self.__buttons['tag'] = wx.Button(parent=self,
+                label='Start taggging files')
         self._sizer.Add(self.__buttons['tag'], flag=wx.ALIGN_CENTER|wx.EXPAND)
 
         # center buttons vertically
@@ -249,6 +275,23 @@ class HomePage(Page):
         if not button in self.__buttons:
             raise ValueError('No such button ("{}")'.format(button))
         self.__buttons[button].Bind(event=wx.EVT_BUTTON, handler=callback)
+
+    def bind_to_dir_picker(self, callback):
+        """Bind a callback to the directory picker on this page.
+
+        Positional arguments:
+        callback -- function to call
+        """
+        self.Bind(wx.EVT_DIRPICKER_CHANGED, callback)
+
+    def set_dir_picker_path(self, path):
+        """Set a new starting path for the dir picker.
+
+        Positional arguments:
+        path -- string the path
+        """
+        #self.__dir_picker.SetInitialDirectory(path)
+        self.__dir_picker.SetPath(str(path))
 
 class TagPage(Page):
     def __init__(self, parent, *args, **kwargs):

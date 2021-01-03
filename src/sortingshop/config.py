@@ -31,7 +31,10 @@ class Config():
         self._load_config(config, path)
         # load from XDG_CONFIG_HOME/sortingshop/config.ini if defined else from
         # ~/.config/sortingshop
-        path = Path(os.getenv('XDG_CONFIG_HOME') or '~/.config').resolve()
+        config_home = os.getenv('XDG_CONFIG_HOME')
+        if not config_home:
+            config_home = Path.home() / '.config' 
+        path = config_home.resolve()
         path = path / 'sortingshop' / 'config.ini'
         self.__config_stored = self._load_config(config, path)
         self.__config_effective = self.__config_stored

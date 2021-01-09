@@ -41,6 +41,8 @@ class Sortingshop():
 
         # register events and commands
         self.__ui.register_event('set_working_dir', self.on_set_working_dir)
+        self.__ui.register_event('source_change',
+                lambda event: self.load_source(event['name']))
 
         self.__ui.register_command('n', 'short', self.load_next_mediafile,
                 'next mediafile', 'display the next mediafile')
@@ -72,6 +74,10 @@ class Sortingshop():
                 'rating: 4', 'rate the mediafile as a 4')
         self.__ui.register_command('5', 'short', lambda: self.set_rating(5),
                 'rating: 5', 'rate the mediafile as a 5')
+        self.__ui.register_command(':', 'long', self.load_mediafile,
+                'load mediafile', 'load the mediafile with the given index')
+        self.__ui.register_command('.', 'long', self.load_source,
+                'load sourcefile', 'load the sourcefile with the given name')
 
         if working_dir == '':
             cfg = config.ConfigSingleton()
@@ -134,11 +140,11 @@ class Sortingshop():
         After set_working_dir the working directory is scanned and a list is
         built. If the user (re)moves files from that directory the change
         will not be detected so this function checks if the requested file
-        (first, last, next, previous, current) is available.
+        (first, last, next, previous, current, INDEX) is available.
 
         Positional arguments:
         position -- string indicating the requested file ("first", "last",
-            "next", "previous", "current")
+            "next", "previous", "current", INDEX)
         """
         media_file_found = False
         abort = False
@@ -184,6 +190,7 @@ class Sortingshop():
         self.__current_mediafile = mediafile
         self.__ui.clear()
         self.__ui.display_picture(mediafile)
+        self.__ui.display_sources(mediafile.get_sources())
         self.__ui.display_info(mediafile.get_metadata())
         self.__ui.display_deleted_status(mediafile.is_deleted())
 
@@ -204,11 +211,11 @@ class Sortingshop():
         After set_working_dir the working directory is scanned and a list is
         built. If the user (re)moves files from that directory the change
         will not be detected so this function checks if the requested sidecar
-        (first, last, next, previous, current) is available.
+        (first, last, next, previous, current, INDEX) is available.
 
         Positional arguments:
         position -- string indicating the requested file ("first", "last",
-            "next", "previous", "current")
+            "next", "previous", "current", INDEX)
         """
         logger.debug('load source {}'.format(position))
         source_found = False

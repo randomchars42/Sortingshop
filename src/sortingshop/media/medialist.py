@@ -243,7 +243,7 @@ class MediaList():
 
         Positional arguments:
         position -- string indicating the requested file ("first", "last",
-            "next", "previous", "current")
+            "next", "previous", "current", INDEX)
         """
         cfg = config.ConfigSingleton()
 
@@ -271,6 +271,19 @@ class MediaList():
             index = 0
         elif position == 'last':
             index = len(self.__mediafiles) - 1
+        else:
+            # if function is called directly by a command the argument will be a
+            # list
+            if isinstance(position, list):
+                position = position[0]
+            # interpret position as index
+            try:
+                position = int(position)
+                self.__mediafiles[position]
+                index = position
+            except (ValueError, IndexError):
+                logger.error('Invalid medialist index requested ("{}")'.format(
+                    str(position)))
 
         if not self.__mediafiles[index].exists():
             # file must have been removed by the user since building the list

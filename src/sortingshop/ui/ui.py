@@ -100,13 +100,15 @@ class UI():
                 return True
         elif len(raw_command) > 1 and raw_command[-1] == "\n":
             # case 2
-            command = raw_command[0:1]
+            parts = raw_command.split(' ')
 
-            if not raw_command[1:2] == ' ':
+            if len(parts) == 1:
                 # missing space between command
                 logger.debug('Malformed command ("{}")'.format(raw_command))
                 # drop
                 return True
+
+            command = parts[0]
 
             if not command in self._long_commands:
                 logger.debug('Invalid command ("{}")'.format(command))
@@ -115,12 +117,12 @@ class UI():
 
             logger.debug('Command "{}" finished'.format(raw_command.strip()))
             # extract arguments
-            arguments = [arg.strip() for arg in raw_command[2:].split(',')]
+            arguments = [arg.strip() for arg in parts[1].split(',')]
             arguments = list(filter(None, arguments))
 
             if len(arguments) == 0:
                 logger.debug('No valid arguments in ("{}"), dropped'.format(
-                    raw_command[2:]))
+                    parts[1]))
                 # drop
                 return True
 
@@ -160,7 +162,7 @@ class UI():
             logger.debug('fire event: {}'.format(event))
             self._events[event](params)
         except KeyError as error:
-            raise ValueError('No such event ("{}")'.format(event))
+            raise ValueError('No listeners for event ("{}")'.format(event))
 
     def set_working_dir(self, working_dir):
         """Set the working directory and fire "set_working_directory".
@@ -213,6 +215,9 @@ class UI():
 
     def clear(self):
         raise NotImplementedError('method "clear" not implemented')
+
+    def display_info(self, metadata):
+        raise NotImplementedError('method "display_info" not implemented')
 
     def display_metadata(self, metadata):
         raise NotImplementedError('method "display_metadata" not implemented')

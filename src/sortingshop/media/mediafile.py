@@ -92,7 +92,7 @@ class MediaFile(metadatasource.MetadataSource):
 
         Positional arguments:
         position -- string indicating the requested file ("first", "last",
-            "next", "previous", "current")
+            "next", "previous", "current", PATH)
         """
         cfg = config.ConfigSingleton()
         use_sidecar = cfg.get('Metadata', 'use_sidecar',
@@ -120,6 +120,19 @@ class MediaFile(metadatasource.MetadataSource):
             index = 0 if use_sidecar else -1
         elif position == 'last':
             index = len(self.__sidecars) - 1
+        else:
+            # if function is called directly by a command the argument will be a
+            # list
+            if isinstance(position, list):
+                position = position[0]
+            # interpret position as name (path)
+            logger.debug('position: {}'.format(position))
+            logger.debug('name: {}'.format(self.get_name()))
+            if position == self.get_name():
+                index = -1
+            else:
+                for i, scar in enumerate(self.__sidecars):
+                    index = i if scar.get_name() == position else index
 
         if index >= 0:
             source = self.__sidecars[index]
@@ -369,6 +382,13 @@ class MediaFile(metadatasource.MetadataSource):
             self.__sidecars[index].rename(path)
 
         return path
+
+    def get_sources(self):
+        """Return a list of the filenames of all sources attached."""
+        sources = [self.get_metadata().get('FileName')]
+        for source in self.__sidecars:
+            sources.append(source.get_metadata().get('FileName'))
+        return sources
 
     def toggle_deleted(self):
         """Toggle file and its sidecars: move it into './deleted/' or back .

@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 import wx
+import time
 import pkg_resources
 
 from . import ui
@@ -82,6 +83,9 @@ class WxPython(ui.UI):
         sizer.Add(tag_page, flag=wx.EXPAND, proportion=1)
         self.__pages['tag'] = tag_page
         tag_page.set_command_processor(self.process_command)
+        self.__pages['tag'].set_source_picker_action(
+                lambda event: self.fire_event('source_change',
+                    {'name': event.GetString()}))
 
         # prepare for display
 
@@ -142,7 +146,12 @@ class WxPython(ui.UI):
         self.__pages['tag'].load_image(mediafile)
 
     def display_sources(self, sources):
-        raise NotImplementedError('method "display_sources" not implemented')
+        """Display the sources.
+
+        Positional arguments:
+        sources -- list
+        """
+        self.__pages['tag'].load_sources(sources)
 
     def clear(self):
         """Prepare for the next mediafile."""
@@ -169,7 +178,7 @@ class WxPython(ui.UI):
 
     def display_deleted_status(self, is_deleted):
         self.__metadata['deleted'] = is_deleted
-        self.__pages['tag'].load_metadata(self.__metadata)
+        self.__pages['tag'].load_info(self.__metadata)
 
     def display_message(self, message):
         wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
@@ -262,6 +271,11 @@ class HomePage(Page):
                 label='Start taggging files')
         self._sizer.Add(self.__buttons['tag'], flag=wx.ALIGN_CENTER|wx.EXPAND)
 
+        self.__buttons['wait'] = wx.Button(parent=self,
+                label='Wait for 10 seconds')
+        self._sizer.Add(self.__buttons['wait'], flag=wx.ALIGN_CENTER|wx.EXPAND)
+        self.bind_to_button('wait', self.wait)
+
         # center buttons vertically
         self._sizer.AddStretchSpacer(prop=1)
 
@@ -290,8 +304,11 @@ class HomePage(Page):
         Positional arguments:
         path -- string the path
         """
-        #self.__dir_picker.SetInitialDirectory(path)
         self.__dir_picker.SetPath(str(path))
+        #self.__dir_picker.SetInitialDirectory(path)
+
+    def wait(self, event):
+        time.sleep(10)
 
 class TagPage(Page):
     def __init__(self, parent, *args, **kwargs):
@@ -317,6 +334,8 @@ class TagPage(Page):
         self._sizer.Add(self.__column_2, flag=wx.EXPAND, proportion=1)
         self.__column_3 = wx.BoxSizer(wx.VERTICAL)
         self._sizer.Add(self.__column_3, flag=wx.EXPAND, proportion=1)
+        self.__column_4 = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Add(self.__column_4, flag=wx.EXPAND, proportion=1)
 
         # column 1
 
@@ -332,30 +351,36 @@ class TagPage(Page):
                 style=wx.ST_NO_AUTORESIZE|wx.ALIGN_CENTRE_HORIZONTAL)
         self.__column_1.Add(self.__info_panel, flag=wx.EXPAND, proportion=0)
 
+        # column 2
+
+        # source picker
+        self.__source_picker = wx.Choice(self, id=wx.ID_ANY)
+        self.__column_2.Add(self.__source_picker, flag=wx.EXPAND, proportion=0)
+
         # command entry
         self.__command_entry = CommandEntry(parent=self)
-        self.__column_1.Add(self.__command_entry, flag=wx.EXPAND, proportion=0)
+        self.__column_2.Add(self.__command_entry, flag=wx.EXPAND, proportion=0)
 
         # metadata
         ctrl_size = cfg.get('UI', 'metadata_field_size_vertical', default=300,
                 variable_type='int')
         self.__metadata = wx.TextCtrl(self, id=wx.ID_ANY, size=(-1,ctrl_size),
                 style=wx.TE_READONLY|wx.TE_MULTILINE)
-        self.__column_1.Add(self.__metadata, flag=wx.EXPAND, proportion=1)
+        self.__column_2.Add(self.__metadata, flag=wx.EXPAND, proportion=1)
 
-        # column 2
+        # column 3
 
         # tagsets
         self.__tagsets = wx.TextCtrl(self, id=wx.ID_ANY,
                 style=wx.TE_READONLY|wx.TE_MULTILINE)
-        self.__column_2.Add(self.__tagsets, flag=wx.EXPAND, proportion=1)
+        self.__column_3.Add(self.__tagsets, flag=wx.EXPAND, proportion=1)
 
-        # column 3
+        # column 4
 
         # metadata
         self.__metadata_panel = wx.TextCtrl(self, id=wx.ID_ANY,
                 style=wx.TE_READONLY|wx.TE_MULTILINE)
-        self.__column_3.Add(self.__metadata_panel, flag=wx.EXPAND, proportion=1)
+        self.__column_4.Add(self.__metadata_panel, flag=wx.EXPAND, proportion=1)
 
         # finished construction
 
@@ -485,6 +510,7 @@ class TagPage(Page):
                 continue
             text += "{}: {}\n".format(key, value)
         self.__metadata_panel.SetValue(text)
+        self.activate_source(metadata.get('FileName'))
 
     def load_tags(self, tags):
         """Set the text of the tags widget.
@@ -499,6 +525,28 @@ class TagPage(Page):
             for tag in tags:
                 text += "{}\n".format(tag)
         self.__metadata.SetValue(text)
+
+    def load_sources(self, sources):
+        """Display the different sources in a choice.
+
+        Positional arguments:
+        sources -- list of source filenames
+        """
+        self.__source_picker.Set(sources)
+
+    def activate_source(self, source):
+        """Set a source in the source choice.
+
+        Positional arguments:
+        sourec -- string filename
+        """
+        self.__source_picker.SetSelection(
+                self.__source_picker.FindString(source))
+
+    def set_source_picker_action(self, on_change):
+        """Bind a function to the wx.Choice."""
+        if not on_change is None:
+            self.Bind(wx.EVT_CHOICE, on_change)
 
     def focus_command_entry(self):
         """Set focus to the command entry."""

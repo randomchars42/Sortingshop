@@ -191,7 +191,9 @@ class Sortingshop():
         self.__ui.clear()
         self.__ui.display_picture(mediafile)
         self.__ui.display_sources(mediafile.get_sources())
-        self.__ui.display_info(mediafile.get_metadata())
+        self.__ui.display_info(mediafile.get_metadata(),
+                index = self.__medialist.get_current_index(),
+                n = self.__medialist.get_number_mediafiles())
         self.__ui.display_deleted_status(mediafile.is_deleted())
 
         self.__current_source = None

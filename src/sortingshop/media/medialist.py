@@ -235,6 +235,11 @@ class MediaList():
         """Return the number of valid mediafiles."""
         return len(self.__mediafiles)
 
+    def get_current_index(self):
+        """Return the current index."""
+        # add 1 for the user so it doesn't start with 0
+        return self.__current + 1
+
     def get_mediafile(self, position):
         """Return the MediaFile at the requested position.
 
@@ -278,7 +283,8 @@ class MediaList():
                 position = position[0]
             # interpret position as index
             try:
-                position = int(position)
+                # substract 1, see get_current_index
+                position = int(position) - 1
                 self.__mediafiles[position]
                 index = position
             except (ValueError, IndexError):

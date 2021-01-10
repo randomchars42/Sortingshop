@@ -155,16 +155,19 @@ class WxPython(ui.UI):
 
     def clear(self):
         """Prepare for the next mediafile."""
-        self.__metadata = {
-                'name': '',
-                'rating': 0,
-                'date': '',
-                'deleted': False}
+        self.__metadata['index'] = -1
+        self.__metadata['n'] = self.__metadata.get('n', -1)
+        self.__metadata['name'] = ''
+        self.__metadata['rating'] = 0
+        self.__metadata['date'] = ''
+        self.__metadata['deleted'] = False
 
     def display_metadata(self, metadata):
         self.__pages['tag'].load_metadata(metadata)
 
-    def display_info(self, metadata):
+    def display_info(self, metadata, index=-1, n=-1):
+        self.__metadata['index'] = index if index > -1 else self.__metadata['index']
+        self.__metadata['n'] = n if n != -1 else self.__metadata['n']
         self.__metadata['name'] = metadata.get('FileName',
                 self.__metadata['name'])
         self.__metadata['rating'] = metadata.get('Rating',
@@ -487,6 +490,7 @@ class TagPage(Page):
         metadata -- dict of available metadata to display
         """
         text = ''
+        text += str(metadata['index']) + '/' + str(metadata['n']) + "\n"
         text += metadata['name']
         text += (' (DELETED)' if metadata['deleted'] else '' ) + "\n"
         text += metadata['date'] + "\n"

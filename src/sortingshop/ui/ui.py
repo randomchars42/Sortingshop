@@ -216,7 +216,7 @@ class UI():
     def clear(self):
         raise NotImplementedError('method "clear" not implemented')
 
-    def display_info(self, metadata):
+    def display_info(self, metadata, index=-1, n=-1):
         raise NotImplementedError('method "display_info" not implemented')
 
     def display_metadata(self, metadata):

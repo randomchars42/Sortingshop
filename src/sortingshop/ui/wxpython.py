@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 import wx
+from wx.lib.dialogs import ScrolledMessageDialog
 import time
 import pkg_resources
 
@@ -76,6 +77,7 @@ class WxPython(ui.UI):
         # set actions to events
         homepage.bind_to_button('tag', lambda event: self._display_page('tag'))
         homepage.bind_to_dir_picker(self._pick_working_dir_handler)
+        homepage.bind_to_button('sort', lambda event: self.fire_event('sort'))
 
         # the page used to tag individual media files
         tag_page = TagPage(panel, layout=wx.HORIZONTAL,
@@ -83,7 +85,7 @@ class WxPython(ui.UI):
         sizer.Add(tag_page, flag=wx.EXPAND, proportion=1)
         self.__pages['tag'] = tag_page
         tag_page.set_command_processor(self.process_command)
-        self.__pages['tag'].set_source_picker_action(
+        tag_page.set_source_picker_action(
                 lambda event: self.fire_event('source_change',
                     {'name': event.GetString()}))
 
@@ -184,10 +186,46 @@ class WxPython(ui.UI):
         self.__pages['tag'].load_info(self.__metadata)
 
     def display_message(self, message):
-        wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
+        self.display_dialog(message, dialog_type = 'ok')
 
-    def display_dialog(self, message, dialog_type="yesno"):
-        raise NotImplementedError('method "display_dialog" not implemented')
+    def display_dialog(self, message, caption='Info', dialog_type='yesno',
+            callbacks={}, scrollable=None):
+        """Display a configurable dialog."""
+        style = None
+
+        if dialog_type == 'yesno':
+            style = wx.ICON_QUESTION|wx.YES_NO|wx.CANCEL
+        elif dialog_type == 'okcancel':
+            style = wx.ICON_QUESTION|wx.OK|wx.CANCEL
+        else:
+            style = wx.ICON_INFORMATION|wx.OK
+
+        if scrollable is None:
+            scrollable = message.count("\n") > 4
+
+        if scrollable:
+            dialog = ScrolledMessageDialog(
+                    self.__frame, message, caption = caption, style =  style)
+        else:
+            dialog = wx.MessageDialog(
+                    self.__frame, message, caption = caption, style =  style)
+
+        result = dialog.ShowModal()
+        dialog.Destroy()
+
+#def YesNo(parent, question, caption = 'Yes or no?'):
+#    dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | wx.ICON_QUESTION)
+#    result = dlg.ShowModal() == wx.ID_YES
+#    dlg.Destroy()
+#    return result
+#def Info(parent, message, caption = 'Insert program title'):
+#    dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_INFORMATION)
+#    dlg.ShowModal()
+#    dlg.Destroy()
+#def Warn(parent, message, caption = 'Warning!'):
+#    dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_WARNING)
+#    dlg.ShowModal()
+#    dlg.Destroy()
 
     def _pick_working_dir_handler(self, event):
         working_dir = event.GetPath()
@@ -274,10 +312,9 @@ class HomePage(Page):
                 label='Start taggging files')
         self._sizer.Add(self.__buttons['tag'], flag=wx.ALIGN_CENTER|wx.EXPAND)
 
-        self.__buttons['wait'] = wx.Button(parent=self,
-                label='Wait for 10 seconds')
-        self._sizer.Add(self.__buttons['wait'], flag=wx.ALIGN_CENTER|wx.EXPAND)
-        self.bind_to_button('wait', self.wait)
+        self.__buttons['sort'] = wx.Button(parent=self,
+                label='Sort mediafiles by tags')
+        self._sizer.Add(self.__buttons['sort'], flag=wx.ALIGN_CENTER|wx.EXPAND)
 
         # center buttons vertically
         self._sizer.AddStretchSpacer(prop=1)
@@ -309,9 +346,6 @@ class HomePage(Page):
         """
         self.__dir_picker.SetPath(str(path))
         #self.__dir_picker.SetInitialDirectory(path)
-
-    def wait(self, event):
-        time.sleep(10)
 
 class TagPage(Page):
     def __init__(self, parent, *args, **kwargs):

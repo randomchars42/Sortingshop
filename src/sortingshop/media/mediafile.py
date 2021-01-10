@@ -126,8 +126,6 @@ class MediaFile(metadatasource.MetadataSource):
             if isinstance(position, list):
                 position = position[0]
             # interpret position as name (path)
-            logger.debug('position: {}'.format(position))
-            logger.debug('name: {}'.format(self.get_name()))
             if position == self.get_name():
                 index = -1
             else:

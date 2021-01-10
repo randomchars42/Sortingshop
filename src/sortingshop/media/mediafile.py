@@ -43,10 +43,10 @@ class MediaFile(metadatasource.MetadataSource):
             if not isinstance(scar, sidecar.Sidecar):
                 raise ValueError('not a sidecar ("{}")'.format(str(scar)))
             logger.debug('adding {} as sidecar'.format(scar.get_name()))
-            if scar.get_name() == '{}.xmp'.format(self.get_name()):
-                logger.debug('standard sidecar detected')
-                self.__sidecar_standard_index = len(self.__sidecars)
             self.__sidecars.append(scar)
+            if scar.get_name() == '{}.xmp'.format(self.get_name()):
+                self.__sidecar_standard_index = len(self.__sidecars) - 1
+                logger.debug('standard sidecar detected')
 
     def has_standard_sidecar(self):
         """Returns True if a sidecar named NAME.EXTENSION.xmp exists."""
@@ -308,9 +308,14 @@ class MediaFile(metadatasource.MetadataSource):
             logger.debug('soft checking')
             if not rename_files or self.is_named_correctly():
                 logger.debug('is named correctly')
-                if not use_sidecar or self.has_standard_sidecar():
+                if not use_sidecar:
+                    logger.info('{} already looks prepared'.format(
+                        str(self.get_path())))
+                    self.__is_prepared = True
+                    return
+                elif use_sidecar and self.has_standard_sidecar():
                     logger.debug('has a standard sidecar')
-                    logger.info('{} looks already prepared'.format(
+                    logger.info('{} already looks prepared'.format(
                         str(self.get_path())))
                     self.__is_prepared = True
                     return

@@ -31,7 +31,7 @@ class Sortingshop():
 
     def _reset(self):
         """Reset instance variables related to media file handling."""
-        self.__medialist = None
+        self.__medialist = medialist.MediaList()
         self.__current_mediafile = None
         self.__current_source = None
 
@@ -84,7 +84,6 @@ class Sortingshop():
         if working_dir == '':
             cfg = config.ConfigSingleton()
             working_dir = cfg.get('Paths', 'working_dir', default='')
-            print(working_dir)
         self.__ui.set_working_dir(working_dir)
 
         # needs to be the last call in this function
@@ -103,7 +102,6 @@ class Sortingshop():
         cfg = config.ConfigSingleton()
         cfg.set('Paths', 'working_dir', params['working_dir'])
 
-        self.__medialist = medialist.MediaList()
         try:
             self.__medialist.parse(params['working_dir'])
         except FileNotFoundError as error:
@@ -132,6 +130,9 @@ class Sortingshop():
             self.__ui.display_message(
                     'Insufficient rights to open tagsets file')
             logger.error(error, exc_info=True)
+
+        logger.debug('working directory loaded, found {} mediafiles'.format(
+            self.__medialist.get_number_mediafiles()))
 
         self.__ui.display_tagsets(self.__tagsets.get_tagsets())
         self.load_mediafile('first')
@@ -413,7 +414,8 @@ class Sortingshop():
             logger.info(error)
         self.__ui.display_message("\n".join(errors))
         # rescan working dir
-        #self.on_set_working_dir({'working_dir': working_dir})
+        logger.debug('Initiate re-scan of "{}"'.format(str(working_dir)))
+        self.__ui.set_working_dir(str(working_dir))
 
 def main():
     """Run the application.

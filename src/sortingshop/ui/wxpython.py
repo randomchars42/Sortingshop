@@ -213,20 +213,6 @@ class WxPython(ui.UI):
         result = dialog.ShowModal()
         dialog.Destroy()
 
-#def YesNo(parent, question, caption = 'Yes or no?'):
-#    dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | wx.ICON_QUESTION)
-#    result = dlg.ShowModal() == wx.ID_YES
-#    dlg.Destroy()
-#    return result
-#def Info(parent, message, caption = 'Insert program title'):
-#    dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_INFORMATION)
-#    dlg.ShowModal()
-#    dlg.Destroy()
-#def Warn(parent, message, caption = 'Warning!'):
-#    dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_WARNING)
-#    dlg.ShowModal()
-#    dlg.Destroy()
-
     def _pick_working_dir_handler(self, event):
         working_dir = event.GetPath()
         self.set_working_dir(working_dir)
@@ -241,8 +227,8 @@ class WxPython(ui.UI):
         if not working_dir_path.is_dir():
             logger.error('Path not a "{}" directory'.format(working_dir))
             return
-        if working_dir == str(self._working_dir):
-            return
+        #if working_dir == str(self._working_dir):
+        #    return
         self.__pages[self.__homepage].set_dir_picker_path(working_dir)
         super(WxPython, self).set_working_dir(working_dir)
 

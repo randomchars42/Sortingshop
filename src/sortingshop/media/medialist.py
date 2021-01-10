@@ -97,6 +97,10 @@ class MediaList():
         """
         if reset:
             self._reset()
+            # resetting files seems necessary on Python 3.6.9
+            # else if the directory is scanned a second time files still
+            # contains entries
+            files={}
         logger.debug('parse "{}"'.format(directory))
         file_types = ['.jpg', '.jpeg', '.png', '.CR2', '.tif', '.tiff']
 
@@ -123,6 +127,7 @@ class MediaList():
 
                 # add sidecar
                 if suffix == '.xmp':
+                    logger.debug('create sidecar "{}"'.format(path))
                     scar = sidecar.Sidecar(path)
                     parent = scar.get_parent()
                     if parent is None:
@@ -159,6 +164,7 @@ class MediaList():
                     except KeyError as error:
                         # the filename does not exist in the files dict
                         pass
+                    logger.debug('create mediafile "{}"'.format(path))
                     files[path.name] = mediafile.MediaFile(path)
         return files
 

@@ -606,7 +606,6 @@ class CommandEntry(CustomWidget):
         # if no processor was given input is useless
         if self.__process_command is None:
             raise ValueError('No processor function set.')
-            #event.Skip()
             return
 
         # catch all unicode keys
@@ -616,7 +615,7 @@ class CommandEntry(CustomWidget):
         if key == wx.WXK_NONE:
             # so try the key code
             # key = event.GetKeyCode()
-            # swallow the event and ignore
+            event.Skip()
             return
         elif key == wx.WXK_RETURN:
             key = "\n"

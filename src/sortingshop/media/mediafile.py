@@ -158,6 +158,16 @@ class MediaFile(metadatasource.MetadataSource):
 
         return self.__current_source
 
+    def get_primary_source(self):
+        """Get the primary source, either Mediafile or Sidecar."""
+        cfg = config.ConfigSingleton()
+        use_sidecar = cfg.get('Metadata', 'use_sidecar',
+                variable_type='boolean', default=False)
+        if use_sidecar:
+            return self.get_standard_sidecar()
+        else:
+            return self
+
     def _unify_dates(self):
         """Write one date to all variables that represent the creation date.
 
@@ -380,6 +390,16 @@ class MediaFile(metadatasource.MetadataSource):
             self.__sidecars[index].rename(path)
 
         return path
+
+    def move(self, target):
+        """Move the file and its sidecars.
+
+        Positional arguments:
+        target -- string or Path
+        """
+        super(MediaFile, self).move(target)
+        for scar in self.__sidecars:
+            scar.move(target)
 
     def get_sources(self):
         """Return a list of the filenames of all sources attached."""

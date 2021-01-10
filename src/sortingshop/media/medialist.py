@@ -308,3 +308,7 @@ class MediaList():
             pass
 
         return self.__mediafiles[self.__current]
+
+    def get_mediafiles(self):
+        """Return list of mediafiles.""Return list of mediafiles."""
+        return self.__mediafiles

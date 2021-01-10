@@ -5,6 +5,7 @@ import sys
 import logging
 import logging.config
 import pkg_resources
+import re
 
 from pathlib import Path
 
@@ -43,6 +44,7 @@ class Sortingshop():
         self.__ui.register_event('set_working_dir', self.on_set_working_dir)
         self.__ui.register_event('source_change',
                 lambda event: self.load_source(event['name']))
+        self.__ui.register_event('sort', lambda event: self.sort())
 
         self.__ui.register_command('n', 'short', self.load_next_mediafile,
                 'next mediafile', 'display the next mediafile')
@@ -331,6 +333,87 @@ class Sortingshop():
             self.__ui.display_message('File not found anymore.')
         self.__ui.display_metadata({'Rating':
             self.__current_source.get_metadata().get('Rating', 0)})
+
+    def sort(self):
+        """Check each mediafile for the sorting tag and sort accordingly.
+
+        The sorting tag is defined in the configuration.
+        """
+        cfg = config.ConfigSingleton()
+
+        working_dir = cfg.get('Paths', 'working_dir', default = '')
+        if working_dir == '':
+            logger.error('working_dir not set')
+            raise ValueError
+        else:
+            working_dir = Path(working_dir)
+
+        regex = cfg.get('Sorting', 'sorting_tag_regex', default = '')
+        if regex == '':
+            logger.error('Missing sorting_tag_regex in config')
+            raise ValueError
+
+        sub = cfg.get('Sorting', 'sorting_tag_sub', default = '')
+        if regex == '':
+            logger.error('Missing sorting_tag_sub in config')
+            raise ValueError
+
+        errors = []
+
+        mediafiles = self.__medialist.get_mediafiles()
+        # scan all mediafiles
+        for mediafile in mediafiles:
+            if mediafile.is_deleted():
+                # skip "deleted files
+                continue
+            logger.debug('Scanning "{}"'.format(mediafile.get_name()))
+            # sorting tag for this mediafile
+            target = ''
+            source = mediafile.get_primary_source()
+            source.load()
+            for tag in source.get_taglist().get_tags():
+                target, n = re.subn(regex, sub, tag)
+                if n > 0:
+                    # we found a sorting tag
+                    logger.debug('Matched target "{}"'.format(target))
+                    source.unload()
+                    break
+                else:
+                    target = ''
+            source.unload()
+
+            # no sorting tag found
+            if target == '':
+                errors.append('No sorting tag found in "{}"'.format(
+                    source.get_path()))
+                # skip to next mediafile
+                continue
+
+            # create destination
+            destination = working_dir / Path(target)
+            # create the target directory
+            try:
+                destination.mkdir(parents = True, exist_ok = True)
+            except PermissionError:
+                errors.append('Insufficient permissions to create "{}"'.format(
+                    destination))
+                # skip to next mediafile
+                continue
+            except FileExistsError:
+                errors.append('"{}" is not a directory'.format(destination))
+                # skip to next mediafile
+                continue
+
+            # move the file
+            mediafile.move(destination)
+
+        # display errors
+        errors = list(set(errors))
+        for error in errors:
+            logger.info(error)
+        self.__ui.display_message("\n".join(errors))
+        # rescan working dir
+        #self.on_set_working_dir({'working_dir': working_dir})
 
 def main():
     """Run the application.

@@ -75,7 +75,7 @@ class WxPython(ui.UI):
         sizer.Add(homepage, flag=wx.EXPAND, proportion=1)
         self.__pages[self.__homepage] = homepage
         # set actions to events
-        homepage.bind_to_button('tag', lambda event: self._display_page('tag'))
+        homepage.bind_to_button('tag', lambda event: self._begin_tagging())
         homepage.bind_to_dir_picker(self._pick_working_dir_handler)
         homepage.bind_to_button('sort', lambda event: self.fire_event('sort'))
 
@@ -164,6 +164,10 @@ class WxPython(ui.UI):
         self.__metadata['date'] = ''
         self.__metadata['deleted'] = False
 
+    def _begin_tagging(self):
+        self.fire_event('begin_tagging')
+        self._display_page('tag')
+
     def display_metadata(self, metadata):
         self.__pages['tag'].load_metadata(metadata)
 
@@ -210,7 +214,18 @@ class WxPython(ui.UI):
             dialog = wx.MessageDialog(
                     self.__frame, message, caption = caption, style =  style)
 
-        result = dialog.ShowModal()
+        clicked = dialog.ShowModal()
+
+        # find and execute the apropriate callback:
+        # map wx.ID_??? against the dictionary passed as param to this function
+        # if any key is not defined "do" will become an empty lambda expression
+        do = {
+                wx.ID_YES: callbacks.get('yes', lambda: None),
+                wx.ID_NO: callbacks.get('no', lambda: None),
+                wx.ID_CANCEL: callbacks.get('cancel', lambda: None),
+                wx.ID_OK: callbacks.get('ok', lambda: None)
+                }.get(clicked, lambda: None)()
+
         dialog.Destroy()
 
     def _pick_working_dir_handler(self, event):

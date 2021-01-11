@@ -75,7 +75,7 @@ class MediaList():
         self.__mediafiles = sorted(self.__mediafiles,
                 key=lambda mediafile: mediafile.get_name())
 
-    def _parse_directory(self, directory, files={}, reset=False):
+    def _parse_directory(self, directory, files=None, reset=False):
         """Scan the directory and catch media files and sidecars.
 
         Expects sidecars to be named like their parent file + ".xmp", e.g.
@@ -97,10 +97,10 @@ class MediaList():
         """
         if reset:
             self._reset()
-            # resetting files seems necessary on Python 3.6.9
-            # else if the directory is scanned a second time files still
-            # contains entries
-            files={}
+        if files is None:
+            # cannot use files={} in function definition because of:
+            # https://stackoverflow.com/a/959118/14979776
+            files = {}
         logger.debug('parse "{}"'.format(directory))
         file_types = ['.jpg', '.jpeg', '.png', '.CR2', '.tif', '.tiff']
 

@@ -42,6 +42,8 @@ class Sortingshop():
 
         # register events and commands
         self.__ui.register_event('set_working_dir', self.on_set_working_dir)
+        self.__ui.register_event('begin_tagging',
+                lambda event: self.on_begin_tagging())
         self.__ui.register_event('source_change',
                 lambda event: self.load_source(event['name']))
         self.__ui.register_event('sort', lambda event: self.sort())
@@ -131,11 +133,28 @@ class Sortingshop():
                     'Insufficient rights to open tagsets file')
             logger.error(error, exc_info=True)
 
-        logger.debug('working directory loaded, found {} mediafiles'.format(
-            self.__medialist.get_number_mediafiles()))
+        message = 'working directory loaded, found {} mediafiles'.format(
+            self.__medialist.get_number_mediafiles())
+        logger.debug(message)
+        self.__ui.display_message(message)
 
         self.__ui.display_tagsets(self.__tagsets.get_tagsets())
-        self.load_mediafile('first')
+
+    def on_begin_tagging(self):
+        cfg = config.ConfigSingleton()
+        rename = cfg.get('Renaming', 'rename_files', default=True,
+                variable_type='boolean')
+        prune = cfg.get('Metadata', 'prune_metadata', default=True,
+                variable_type='boolean')
+        if rename or prune:
+            action = 'renamed' if rename else ''
+            action += ', ' if rename and prune else ''
+            action += 'pruned' if prune else ''
+            self.__ui.display_dialog('You are about to begin tagging. Every ' +
+                    'file you encounter might be altered (' + action + '). ' +
+                    'Those changes are permanent and cannot be undone. ' +
+                    'Proceed anyway?',
+                    callbacks={'yes': lambda: self.load_mediafile('first')})
 
     def load_mediafile(self, position):
         """ Load a mediafile and check if it has been removed since startup.

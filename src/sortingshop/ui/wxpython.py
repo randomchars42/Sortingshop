@@ -36,6 +36,8 @@ class WxPython(ui.UI):
         """Construct the frame and its layout."""
         # the application frame (what you see as a "window")
         self.__frame = wx.Frame(parent=None, id=wx.ID_ANY, title='Sortingshop')
+        path = Path(pkg_resources.resource_filename(__name__, 'resources/sosho.ico'))
+        self.__frame.SetIcon(wx.Icon(str(path), wx.BITMAP_TYPE_ICO))
         self.__frame.Show()
         # add a sizer which will later be used to resize the frame according to
         # its content
@@ -484,7 +486,7 @@ class TagPage(Page):
             width = self.__max_size * width / height
             height = self.__max_size
         image = image.Scale(width, height)
- 
+
         self.__image.SetBitmap(wx.Bitmap(image))
         self.Refresh()
         self._sizer.Layout()

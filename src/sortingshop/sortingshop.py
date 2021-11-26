@@ -6,6 +6,7 @@ import logging
 import logging.config
 import pkg_resources
 import re
+import argparse
 
 from pathlib import Path
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 class Sortingshop():
     """"""
 
-    def __init__(self):
+    def __init__(self, options = []):
         """Initialise UI ... ."""
         self.__ui = wxpython.WxPython()
         self.__tagsets = tagsets.Tagsets()
@@ -35,7 +36,7 @@ class Sortingshop():
         self.__current_mediafile = None
         self.__current_source = None
 
-    def run(self, working_dir=''):
+    def run(self):
         """Do"""
         # construct
         self.__ui.construct()
@@ -83,9 +84,8 @@ class Sortingshop():
         self.__ui.register_command('.', 'long', self.load_source,
                 'load sourcefile', 'load the sourcefile with the given name')
 
-        if working_dir == '':
-            cfg = config.ConfigSingleton()
-            working_dir = cfg.get('Paths', 'working_dir', default='')
+        cfg = config.ConfigSingleton()
+        working_dir = cfg.get('Paths', 'working_dir', default='')
         self.__ui.set_working_dir(working_dir)
 
         # needs to be the last call in this function
@@ -437,6 +437,45 @@ def main():
                 '"src/sortingshop/exiftool-src/exiftool".')
     else:
         raise FileNotFoundError('No ExifTool executable detected.')
+
+    cfg = config.ConfigSingleton()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-o', '--options',
+        help='arbitrary configuration(s) as could be found in the ini-file ' +
+            'formatted like SECTION1.option1=val1@@SECTION2.option4=val2@@...' +
+            ', e.g., Metadata.soft_check=true@@Renaming.rename_files=false, ' +
+            '"@@" serves as a separator',
+        action='store',
+        default='',
+        type=str)
+    parser.add_argument(
+        '-d', '--working_dir',
+        help='your working directory (where the pictures are) [None]',
+        action='store',
+        type=str,
+        default="")
+    parser.add_argument(
+        '-i', '--index',
+        help='start working at given index [0]',
+        action='store',
+        type=int,
+        default=0)
+
+    args = parser.parse_args()
+
+    if not args.options == '':
+        for option in args.options.split('@@'):
+            try:
+                section, rest = option.split('.', 1)
+                option, value = rest.split('=', 1)
+                cfg.set(section, option, value)
+            except:
+                logger.error('did not understand option "{}"'.format(option))
+
+    if not args.working_dir == '':
+        cfg.set('Paths', 'working_dir', args.working_dir)
 
     with exiftool.ExifToolSingleton(executable=executable):
         sosho = Sortingshop()

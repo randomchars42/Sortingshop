@@ -279,7 +279,7 @@ class MediaFile(metadatasource.MetadataSource):
                 *metadata,
                 '-m', str(self.get_path()))
 
-    def prepare(self):
+    def prepare(self, tagsets=None):
         """Central function to keep your mediafiles clean."""
 
         logger.debug('prepare {}'.format(self.get_name()))
@@ -303,6 +303,8 @@ class MediaFile(metadatasource.MetadataSource):
                 variable_type='boolean', default=False)
         soft_check = cfg.get('Metadata', 'soft_check',
                 variable_type='boolean', default=False)
+        apply_default_tagset = cfg.get('Metadata', 'apply_default_tagset',
+                variable_type='boolean', default=False)
 
         if soft_check:
             logger.debug('soft checking')
@@ -312,31 +314,37 @@ class MediaFile(metadatasource.MetadataSource):
                     logger.info('{} already looks prepared'.format(
                         str(self.get_path())))
                     self.__is_prepared = True
-                    return
                 elif use_sidecar and self.has_standard_sidecar():
                     logger.debug('has a standard sidecar')
                     logger.info('{} already looks prepared'.format(
                         str(self.get_path())))
                     self.__is_prepared = True
-                    return
 
-        self._unify_dates()
+        if not self.__is_prepared:
+            self._unify_dates()
 
-        if use_sidecar or prune_metadata:
-            self._create_standard_sidecar()
+            if use_sidecar or prune_metadata:
+                self._create_standard_sidecar()
 
-        if prune_metadata:
-            self._prune()
+            if prune_metadata:
+                self._prune()
 
-        if not use_sidecar and prune_metadata:
-            self._sidecar_to_mediafile(self.__sidecar_standard_index)
-            self._remove_sidecar(self.__sidecar_standard_index)
+            if not use_sidecar and prune_metadata:
+                self._sidecar_to_mediafile(self.__sidecar_standard_index)
+                self._remove_sidecar(self.__sidecar_standard_index)
 
-        # renaming enabled and file needs renaming
-        if rename_files and not self.is_named_correctly():
-            self.rename()
-        self.unload()
-        self.load()
+            # renaming enabled and file needs renaming
+            if rename_files and not self.is_named_correctly():
+                self.rename()
+            self.unload()
+            self.load()
+
+        # this can only happen if a sidecar has already been created in case
+        # of use_sidecar
+        if apply_default_tagset and tagsets.has_default_tagset():
+            logger.debug('applying default tags')
+            self.get_primary_source().toggle_tags(
+                ['ALL_PICTURES'], tagsets=tagsets, force="in")
         self.__is_prepared = True
 
     def load(self):

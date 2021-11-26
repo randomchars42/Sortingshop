@@ -121,3 +121,15 @@ class Tagsets():
                 logger.error('Invalid line "{}" in file "{}"'.format(
                     line.rstrip(), str(path)))
         return tagsets
+
+    def get_default_tagset(self):
+        """Return the tagset that should be applied to all pictures."""
+        try:
+            return self.__tagsets['ALL_PICTURES']
+        except KeyError:
+            return None
+
+    def has_default_tagset(self):
+        """Is there a tagset that should be applied to all pictures?"""
+        return 'ALL_PICTURES' in self.__tagsets
+

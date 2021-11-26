@@ -165,7 +165,7 @@ class MetadataSource():
         self._date = None
         self._is_loaded = None
 
-    def load(self):
+    def load(self, tagsets=None):
         """Load metadata and determine create date."""
         # use "-s" to get names as used here: https://exiftool.org/TagNames/
         raw = self._exiftool.do(str(self.__path), '-n', '-s')['text']
@@ -225,7 +225,7 @@ class MetadataSource():
         """Return the taglist."""
         return self.__taglist
 
-    def toggle_tags(self, tags):
+    def toggle_tags(self, tags, tagsets = None, force="neither"):
         """Toggle the tags.
 
         For toggle mechanism see TagList.toggle_tags(). This function only
@@ -237,11 +237,15 @@ class MetadataSource():
 
         Positional arguments:
         tags -- List of tags
+        tagsets -- A Tagsets-object to resolve tagsets
+        force -- do not toggle but force "in" / "out" or "toggle"
         """
         if not self.exists():
             logger.error('file "{}" not found'.format(str(self.get_path())))
             raise FileNotFoundError
-        tags = self.get_taglist().toggle_tags(tags, force_all=False)
+
+        tags = self.get_taglist().toggle_tags(tags, tagsets=tagsets,
+            force_all=False, force="in")
         command = ['-overwrite_original']
         if len(tags['remove']) > 0:
             tags['remove'].sort()

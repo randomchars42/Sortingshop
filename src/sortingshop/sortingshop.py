@@ -102,7 +102,7 @@ class Sortingshop():
         self._reset()
 
         cfg = config.ConfigSingleton()
-        cfg.set('Paths', 'working_dir', params['working_dir'])
+        cfg.set('Paths', 'working_dir', str(params['working_dir']))
 
         try:
             self.__medialist.parse(params['working_dir'])
@@ -115,7 +115,7 @@ class Sortingshop():
             self.__medialist = None
             return
         except FileExistsError as error:
-            # the same media file name is used in working_dir and 
+            # the same media file name is used in working_dir and
             # working_dir/deleted
             self.__ui.display_message(
                     'File "{}" exists in {} and {}/deleted'.format(
@@ -184,7 +184,7 @@ class Sortingshop():
             except FileNotFoundError as error:
                 logger.error('{} media file not found'.format(position))
                 if position == 'current':
-                    self.__ui.display_message('Current media file not found ' + 
+                    self.__ui.display_message('Current media file not found ' +
                         'anymore. Did you just remove it?')
                     # leave loop display default and continue...
                     abort = True
@@ -208,7 +208,7 @@ class Sortingshop():
             self.__ui.display_message('{} file(s) not found anymore.'.format(
                 str(files_not_found)))
 
-        mediafile.prepare()
+        mediafile.prepare(tagsets=self.__tagsets)
         self.__current_mediafile = mediafile
         self.__ui.clear()
         self.__ui.display_picture(mediafile)
@@ -296,27 +296,8 @@ class Sortingshop():
         The user may input a list of tags and or abbreviations which will be
         expanded with the help of tagsets.
         """
-        # expand abbreviations entered by the user
-        tags = []
-        for part in user_input:
-            # if a non-empty array is returned the part of the user input was an
-            # abbreviation
-            # if no matching tagset is found treat the part as a new tag
-            tagset = self.__tagsets.get_tagset(part)
-            if len(tagset) > 0:
-                logger.debug('extended abbreviation "{}" -> {}'.format(
-                    part, ','.join(tagset)))
-                tags.extend(tagset)
-            else:
-                tags.append(part)
-
-        # filter duplicates & sort
-        tags = list(set(tags))
-        tags.sort()
-        logger.info('toggle tags: {}'.format(','.join(tags)))
-
         try:
-            self.__current_source.toggle_tags(tags)
+            self.__current_source.toggle_tags(user_input, self.__tagsets)
         except ChildProcessError:
             self.__ui.display_message('Tags were not updated.')
         except FileNotFoundError:

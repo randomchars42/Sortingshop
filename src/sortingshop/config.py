@@ -33,7 +33,7 @@ class Config():
         # ~/.config/sortingshop
         config_home = os.getenv('XDG_CONFIG_HOME')
         if not config_home:
-            config_home = Path.home() / '.config' 
+            config_home = Path.home() / '.config'
         path = config_home.resolve()
         path = path / 'sortingshop' / 'config.ini'
         self.__config_stored = self._load_config(config, path)
@@ -84,9 +84,14 @@ class Config():
 
         Positional arguments:
         section -- string the section
-        field -- string the key 
+        field -- string the key
         value -- string the value to set
         """
+        try:
+            self.__config_effective[section][field] = value
+        except KeyError:
+            logger.debug('could not set config value for "'+ str(section) +
+                '.' + str(field) + '" to "' + value + '"')
 
 class ConfigSingleton(Config, metaclass=singleton.Singleton):
     pass

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 import logging
@@ -12,8 +11,32 @@ class TagList():
         """Initialise instance variables."""
         self.__tags = []
 
-    def toggle_tags(self, tags, force_all=False):
+    def expand_tagsets(self, tags_input, tagsets=None):
+        """Expand tagsets  from a list of possible tagsets."""
+        if not tagsets is None:
+            # expand abbreviations entered by the user
+            tags = []
+            for part in tags_input:
+                # if a non-empty array is returned the part of the user input was an
+                # abbreviation
+                # if no matching tagset is found treat the part as a new tag
+                tagset = tagsets.get_tagset(part)
+                if len(tagset) > 0:
+                    logger.debug('extended abbreviation "{}" -> {}'.format(
+                        part, ','.join(tagset)))
+                    tags.extend(tagset)
+                else:
+                    tags.append(part)
+            return tags
+        else:
+            return tags_input
+
+    def toggle_tags(self, tags_input, tagsets=None, force_all=False,
+        force="toggle"):
         """Toggle individual tags.
+
+        Will expand tagsets first.
+        Will by itself not write tags to any file.
 
         Expands nested tags so that if you set "tags|my tags|special tag"
         "tags" and "tags|my tags" will be set as well. On removal of
@@ -26,7 +49,17 @@ class TagList():
 
         Keyword arguments:
         force_all -- force the existence of all tags before removing all
+        force -- do not toggle but force "in" / "out" or "toggle"
         """
+
+        tags = self.expand_tagsets(tags_input, tagsets=tagsets)
+
+        # filter duplicates & sort
+        tags = list(set(tags))
+        tags.sort()
+        logger.info('toggle tags: {}'.format(','.join(tags)))
+
+        # collect tags that were added / removed
         remove = []
         add = []
 
@@ -41,12 +74,13 @@ class TagList():
                 for tag in tags:
                     add += self._add_to_taglist(tag)
         else:
-            # collect tags that were added / removed
             for tag in tags:
                 if tag in self.__tags:
-                    remove += self._remove_from_taglist(tag)
+                    if not force == "in":
+                        remove += self._remove_from_taglist(tag)
                 else:
-                    add += self._add_to_taglist(tag)
+                    if not force == "out":
+                        add += self._add_to_taglist(tag)
 
         return {'add': list(set(add)), 'remove': list(set(remove))}
 
@@ -55,9 +89,10 @@ class TagList():
         return self.__tags
 
     def load_tags(self, tags, intersect=False):
-        """Add tags for initial construction - else use toggle_tags.
+        """Load tags, for initial construction, else use toggle_tags.
 
         Will not add duplicate tags.
+        Will by itself not write tags to any file.
 
         Positional arguments:
         tags -- list of tags to add

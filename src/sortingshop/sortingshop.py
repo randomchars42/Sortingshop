@@ -456,12 +456,6 @@ def main():
         action='store',
         type=str,
         default="")
-    parser.add_argument(
-        '-i', '--index',
-        help='start working at given index [0]',
-        action='store',
-        type=int,
-        default=0)
 
     args = parser.parse_args()
 

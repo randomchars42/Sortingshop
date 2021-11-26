@@ -255,6 +255,8 @@ class MetadataSource():
             tags['add'].sort()
             for tag in tags['add']:
                 command += ['-hierarchicalSubject+=' + tag + '']
+        if len(tags['add']) + len(tags['remove']) == 0:
+            return self.get_taglist()
         command += [str(self.get_path())]
         result = self._exiftool.do(*command)
         if result['updated'] != 1:

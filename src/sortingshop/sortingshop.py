@@ -425,8 +425,6 @@ def main():
 
     Raises FileNotFoundError if no ExifTool executable could be detected.
     """
-    logging.config.dictConfig(log.config)
-
     if pkg_resources.resource_exists(__name__, 'exiftool-src/exiftool'):
         executable=[
                 pkg_resources.resource_filename(__name__, 'exiftool-src') +
@@ -456,6 +454,11 @@ def main():
         action='store',
         type=str,
         default="")
+    parser.add_argument(
+        '-v', '--verbosity',
+        help='turn on debug mode',
+        action='count',
+        default=0)
 
     args = parser.parse_args()
 
@@ -470,6 +473,13 @@ def main():
 
     if not args.working_dir == '':
         cfg.set('Paths', 'working_dir', args.working_dir)
+
+    if args.verbosity > 0:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
+    logging.config.dictConfig(log.config)
 
     with exiftool.ExifToolSingleton(executable=executable):
         sosho = Sortingshop()

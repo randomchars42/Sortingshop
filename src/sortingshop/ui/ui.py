@@ -27,7 +27,7 @@ class UI():
         "Short" commands are single letter commands without any arguments. The
         callback function will be invoked with callback().
 
-        "Long" commands are single letter commands which recieve an arbitrary 
+        "Long" commands are single letter commands which recieve an arbitrary
         amount of arguments. The callback function will be invoked with
         callback(arguments).
 
@@ -46,7 +46,7 @@ class UI():
         elif command_type == 'long':
             self._long_commands[command] = {
                     'callback': callback, 'label': label, 'info': info}
-            logger.debug('short command "{}" registered'.format(command))
+            logger.debug('long command "{}" registered'.format(command))
         else:
             logger.error(
                 'Command {} not registered (invalid command type: {})'.format(
@@ -88,7 +88,7 @@ class UI():
             if raw_command in self._long_commands:
                 # wait for the command to end
                 logger.debug('Command "{}" begun'.format(raw_command))
-                return False 
+                return False
             elif raw_command in self._short_commands:
                 logger.debug('Command "{}" called'.format(raw_command))
                 self._short_commands[raw_command]['callback']()

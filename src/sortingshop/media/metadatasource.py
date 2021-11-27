@@ -346,6 +346,7 @@ class MetadataSource():
         Keyword arguments:
         target -- Path or string, the target to move the file to
         """
+        logger.debug('Moving file "{}"'.format(self.get_name()))
         if target is None:
             logger.error('No target given')
             raise ValueError
@@ -406,6 +407,7 @@ class MetadataSource():
          - PermissionError in case of insufficient permissions
         """
         is_deleted = self.is_deleted()
+        logger.debug('toggle deletion of {}'.format(self.get_name()))
 
         if is_deleted:
             # move the file back to the working dir

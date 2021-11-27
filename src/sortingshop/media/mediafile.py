@@ -420,18 +420,3 @@ class MediaFile(metadatasource.MetadataSource):
         for source in self.__sidecars:
             sources.append(source.get_metadata().get('FileName'))
         return sources
-
-    def toggle_deleted(self):
-        """Toggle file and its sidecars: move it into './deleted/' or back .
-
-        See MetadataSource.toggle_deleted().
-
-        Raises:
-         - FileExistsError if a file with this name already exists at the target
-         - PermissionError in case of insufficient permissions
-        """
-
-        for index in range(len(self.__sidecars)):
-            self.__sidecars[index].toggle_deleted()
-
-        return super(MediaFile, self).toggle_deleted()

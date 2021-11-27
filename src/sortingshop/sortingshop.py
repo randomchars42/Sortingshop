@@ -341,8 +341,9 @@ class Sortingshop():
             self.__ui.display_message('Rating was not updated.')
         except FileNotFoundError:
             self.__ui.display_message('File not found anymore.')
-        self.__ui.display_metadata({'Rating':
+        self.__ui.display_info({'Rating':
             self.__current_source.get_metadata().get('Rating', 0)})
+        self.__ui.display_metadata(self.__current_source.get_metadata())
 
     def rotate(self, direction='cw'):
         """Rotate by setting the exif flag.
@@ -377,6 +378,7 @@ class Sortingshop():
 
         self.__current_mediafile.set_orientation(orientation)
         self.__ui.display_picture(self.__current_mediafile)
+        self.__ui.display_metadata(self.__current_source.get_metadata())
 
     def _rotate(self, orientation, direction, orientations):
         # to rotate counterclockwise the order of orientations just needs

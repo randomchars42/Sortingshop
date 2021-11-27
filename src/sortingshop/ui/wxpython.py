@@ -581,6 +581,8 @@ class TagPage(Page):
         Positional arguments:
         sourec -- string filename
         """
+        #if source is None:
+        #    return
         self.__source_picker.SetSelection(
                 self.__source_picker.FindString(source))
 

@@ -62,7 +62,6 @@ class Tagsets():
             ]
 
         for path in paths:
-            print(path)
             if path == '':
                 continue
             path = str(Path(path).expanduser())

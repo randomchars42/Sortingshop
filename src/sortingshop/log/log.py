@@ -13,7 +13,7 @@ config = {
     },
     'handlers': {
         'console':{
-            #'level': 'DEBUG',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
@@ -30,13 +30,13 @@ config = {
         '__main__': {
             'handlers': ['console'],
             'propagate': False,
-            #'level': 'DEBUG',
+            'level': 'DEBUG',
         },
-        #'sortingshop': {
-        #    'handlers': ['console'],
-        #    'propagate': False,
-        #    'level': 'DEBUG',
-        #},
+        'sortingshop': {
+            'handlers': ['console'],
+            'propagate': False,
+            'level': 'DEBUG',
+        },
         #'sortingshop.ui': {
         #    'handlers': ['console'],
         #    'level': 'DEBUG',

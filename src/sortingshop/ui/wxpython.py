@@ -277,7 +277,7 @@ class Page(wx.Panel):
         if not callback_on_back is None:
             button_back = wx.Button(parent=self, label='Back')
             button_back.Bind(event=wx.EVT_BUTTON, handler=callback_on_back)
-            self.__bar_sizer.Add(button_back, flag=wx.ALIGN_RIGHT)
+            self.__bar_sizer.Add(button_back)
             self.__buttons['back'] = button_back
 
     def show_page(self):
@@ -309,15 +309,15 @@ class HomePage(Page):
         self.__dir_picker = wx.DirPickerCtrl(parent=self, path=str(Path.home()),
               message='Choose a directory',
               style=wx.DIRP_DIR_MUST_EXIST|wx.DIRP_SMALL|wx.DIRP_USE_TEXTCTRL)
-        self._sizer.Add(self.__dir_picker, flag=wx.ALIGN_CENTER|wx.EXPAND)
+        self._sizer.Add(self.__dir_picker, flag=wx.EXPAND)
 
         self.__buttons['tag'] = wx.Button(parent=self,
                 label='Start taggging files')
-        self._sizer.Add(self.__buttons['tag'], flag=wx.ALIGN_CENTER|wx.EXPAND)
+        self._sizer.Add(self.__buttons['tag'], flag=wx.EXPAND)
 
         self.__buttons['sort'] = wx.Button(parent=self,
                 label='Sort mediafiles by tags')
-        self._sizer.Add(self.__buttons['sort'], flag=wx.ALIGN_CENTER|wx.EXPAND)
+        self._sizer.Add(self.__buttons['sort'], flag=wx.EXPAND)
 
         # center buttons vertically
         self._sizer.AddStretchSpacer(prop=1)

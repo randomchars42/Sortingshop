@@ -51,26 +51,27 @@ class Tagsets():
         cfg = config.ConfigSingleton()
         tagsets = {}
 
-        # try to load file in working_dir
-        logger.debug('try loading tagsets from working directory')
-        try:
-            tagsets = self._load_file('{}/{}'.format(
+        # try loading tagsets from those paths
+        # load the file specified in the config first and then
+        # let the local file add to / overwrite the other tagsets
+        paths = [
+            cfg.get('Paths', 'path_tagsets', default=''),
+            '{}/{}'.format(
                 cfg.get('Paths', 'working_dir', default=''),
-                self.__file_name))
-            logger.info('tagsets loaded from working directory')
-        # don't catch PermissionError but bubble it up so the user can be made
-        # aware of it
-        except FileNotFoundError:
-            # try to load file specified in config
-            path = cfg.get('Paths', 'tagsets_path', default='')
-            logger.debug('try loading tagsets from "{}"'.format(path))
+                self.__file_name)
+            ]
+
+        for path in paths:
+            print(path)
+            if path == '':
+                continue
+            path = str(Path(path).expanduser())
             try:
-                tagsets = self._load_file(path)
+                tagsets.update(self._load_file(path))
                 logger.info('tagsets loaded from "{}"'.format(path))
-            except ValueError:
-                logger.info('"tagsets_path" not specified')
             except FileNotFoundError:
-                logger.info('no tagsets file found')
+                logger.info('could not open file "{}"'.format(path))
+
         self.__tagsets = tagsets
         return self.__tagsets
 

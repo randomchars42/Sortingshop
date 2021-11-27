@@ -297,6 +297,38 @@ class MetadataSource():
         self.__metadata['Rating'] = rating
         return rating
 
+    def set_orientation(self, orientation):
+        """Update the orientation.
+
+        Raises
+         - ValueError in case of an incorrect rating
+         - FileNotFoundError if file could not be found
+         - ChildProcessError if update of file failed
+
+        Positional arguments:
+        orientation -- int (1 - 8)
+        """
+        if not self.exists():
+            logger.error('file "{}" not found'.format(str(self.get_path())))
+            raise FileNotFoundError
+
+        if not isinstance(orientation, str) or orientation not in '12345678':
+            logger.error('invalid rotation "{}"'.format(orientation))
+            raise ValueError
+
+        command = ['-overwrite_original', '-Orientation=' + orientation, '-n',
+                str(self.get_path())]
+
+        result = self._exiftool.do(*command)
+
+        if result['updated'] != 1:
+            logger.error(
+                    'exiftool command "{}" failed'.format(' '.join(command)))
+            raise ChildProcessError
+
+        self.__metadata['Orientation'] = orientation
+        return orientation
+
     def get_rating(self):
         return self.__metadata.get('Rating', 0)
 

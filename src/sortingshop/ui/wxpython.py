@@ -458,9 +458,9 @@ class TagPage(Page):
         #  7 -> flip horizontally, rotate 90°
         #  8 -> rotate 270°
         if not mediafile is None:
-            orientation = mediafile.get_metadata('Orientation', default='0')
+            orientation = mediafile.get_metadata('Orientation', default='1')
             if orientation == '2':
-                image = image.Mirror(horizontally=True)
+                image = image.Mirror(horizontally=False)
             elif orientation == '3':
                 image = image.Rotate180()
             elif orientation == '4':

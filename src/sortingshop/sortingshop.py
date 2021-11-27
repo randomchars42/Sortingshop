@@ -65,6 +65,15 @@ class Sortingshop():
         self.__ui.register_command('d', 'short', self.toggle_deleted,
                 'delete / undelete mediafile', 'moves the mediafile to ' +
                 '"./deleted/" or back')
+        self.__ui.register_command('h', 'short', lambda: self.flip('h'),
+                'flip horizontally', 'flip the mediafile horizontally')
+        self.__ui.register_command('v', 'short', lambda: self.flip('v'),
+                'flip vertically', 'flip the mediafile vertically')
+        self.__ui.register_command('c', 'short', lambda: self.rotate('cw'),
+                'rotate clockwise', 'rotate the mediafile clockwise')
+        self.__ui.register_command('C', 'short', lambda: self.rotate('ccw'),
+                'rotate counterclockwise', 'rotate the mediafile ' +
+                'counterclockwise')
         self.__ui.register_command('r', 'short', lambda: self.set_rating(-1),
                 'rating: rejected', 'rate the mediafile as rejected')
         self.__ui.register_command('0', 'short', lambda: self.set_rating(0),
@@ -334,6 +343,86 @@ class Sortingshop():
             self.__ui.display_message('File not found anymore.')
         self.__ui.display_metadata({'Rating':
             self.__current_source.get_metadata().get('Rating', 0)})
+
+    def rotate(self, direction='cw'):
+        """Rotate by setting the exif flag.
+
+        Operates on the mediafile.
+
+        Keyword arguments:
+        direction: clockwise or counterclockwise ("cw"|"ccw")
+        """
+        # rotate / flip according to exif
+        # Value (angles counterclockwise)
+        #  1 -> do nothing
+        #  2 -> flip horizontally
+        #  3 -> rotate 180°
+        #  4 -> flip vertically
+        #  5 -> flip horizontally, rotate 270°
+        #  6 -> rotate 90°
+        #  7 -> flip horizontally, rotate 90°
+        #  8 -> rotate 270°
+        orientation = self.__current_mediafile.get_metadata(
+            'Orientation', default='1')
+
+        orientations = ['1','6','3','8']
+        flipped_orientations = ['4','7','2','5']
+
+        if orientation in orientations:
+            orientation = self._rotate(orientation, direction,
+                orientations)
+        elif orientation in flipped_orientations:
+            orientation = self._rotate(orientation, direction,
+                flipped_orientations)
+
+        self.__current_mediafile.set_orientation(orientation)
+        self.__ui.display_picture(self.__current_mediafile)
+
+    def _rotate(self, orientation, direction, orientations):
+        # to rotate counterclockwise the order of orientations just needs
+        # to be reversed
+        if direction == 'ccw':
+            orientations.reverse()
+
+        # get the index of the current orientation
+        index = orientations.index(orientation)
+        # and move one position forwards (wrap around if necessary)
+        if index == len(orientations) - 1:
+            index = 0
+        else:
+            index = index + 1
+        return orientations[index]
+
+
+    def flip(self, direction='v'):
+        """Flip by setting the exif flag if possible.
+
+        Not all orientations may be flipped this way.
+        Operates on the mediafile.
+
+        Keyword arguments:
+        direction: vertically or horizontally ("v"|"h")
+        """
+        orientation = self.__current_mediafile.get_metadata(
+            'Orientation', default='1')
+
+        if direction == 'v':
+            orientation = {
+                '1':'4', '4':'1',
+                '3':'2', '2':'3',
+                '5':'6', '6':'5',
+                '8':'7', '7':'8'
+                }[orientation]
+        elif direction == 'h':
+            orientation =  {
+                '1':'2', '2':'1',
+                '4':'3', '3':'4',
+                '5':'8', '8':'5',
+                '7':'6', '6':'7'
+                }[orientation]
+
+        self.__current_mediafile.set_orientation(orientation)
+        self.__ui.display_picture(self.__current_mediafile)
 
     def sort(self):
         """Check each mediafile for the sorting tag and sort accordingly.

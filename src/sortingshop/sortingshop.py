@@ -526,8 +526,7 @@ class Sortingshop():
         errors = []
 
         # scan all mediafiles
-        num = self.__medialist.get_number_mediafiles()
-        for i in range(1, num):
+        for i in range(self.__medialist.get_number_mediafiles()):
             mediafile = self.__medialist.get_mediafile(i)
             if mediafile.is_deleted():
                 # skip "deleted files

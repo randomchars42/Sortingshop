@@ -528,9 +528,6 @@ class Sortingshop():
         # scan all mediafiles
         for i in range(self.__medialist.get_number_mediafiles()):
             mediafile = self.__medialist.get_mediafile(i)
-            if mediafile.is_deleted():
-                # skip "deleted files
-                continue
             logger.debug('Scanning "{}"'.format(mediafile.get_name()))
             mediafile.prepare(self.__tagsets)
         self.__ui.display_message("Preparation of all files finished.")

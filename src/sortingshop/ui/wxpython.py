@@ -79,6 +79,7 @@ class WxPython(ui.UI):
         sizer.Add(homepage, flag=wx.EXPAND, proportion=1)
         self.__pages[self.__homepage] = homepage
         # set actions to events
+        homepage.bind_to_button('prepare', lambda event: self.fire_event('prepare'))
         homepage.bind_to_button('tag', lambda event: self._begin_tagging())
         homepage.bind_to_dir_picker(self._pick_working_dir_handler)
         homepage.bind_to_button('sort', lambda event: self.fire_event('sort'))
@@ -320,6 +321,10 @@ class HomePage(Page):
               message='Choose a directory',
               style=wx.DIRP_DIR_MUST_EXIST|wx.DIRP_SMALL|wx.DIRP_USE_TEXTCTRL)
         self._sizer.Add(self.__dir_picker, flag=wx.EXPAND)
+
+        self.__buttons['prepare'] = wx.Button(parent=self,
+                label='Prepare mediafiles (e.g. rename, prune)')
+        self._sizer.Add(self.__buttons['prepare'], flag=wx.EXPAND)
 
         self.__buttons['tag'] = wx.Button(parent=self,
                 label='Start taggging files')

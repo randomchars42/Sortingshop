@@ -48,6 +48,7 @@ class Sortingshop():
         self.__ui.register_event('source_change',
                 lambda event: self.load_source(event['name']))
         self.__ui.register_event('sort', lambda event: self.sort())
+        self.__ui.register_event('prepare', lambda event: self.prepare_all())
 
         self.__ui.register_command('n', 'short', self.load_next_mediafile,
                 'next mediafile', 'display the next mediafile')
@@ -507,6 +508,33 @@ class Sortingshop():
         # rescan working dir
         logger.debug('Initiate re-scan of "{}"'.format(str(working_dir)))
         self.__ui.set_working_dir(str(working_dir))
+
+    def prepare_all(self):
+        """Check each mediafile and prepare it.
+
+        The sorting tag is defined in the configuration.
+        """
+        cfg = config.ConfigSingleton()
+
+        working_dir = cfg.get('Paths', 'working_dir', default = '')
+        if working_dir == '':
+            logger.error('working_dir not set')
+            raise ValueError
+        else:
+            working_dir = Path(working_dir)
+
+        errors = []
+
+        # scan all mediafiles
+        num = self.__medialist.get_number_mediafiles()
+        for i in range(1, num):
+            mediafile = self.__medialist.get_mediafile(i)
+            if mediafile.is_deleted():
+                # skip "deleted files
+                continue
+            logger.debug('Scanning "{}"'.format(mediafile.get_name()))
+            mediafile.prepare(self.__tagsets)
+        self.__ui.display_message("Preparation of all files finished.")
 
 def main():
     """Run the application.

@@ -504,7 +504,8 @@ class Sortingshop():
         errors = list(set(errors))
         for error in errors:
             logger.info(error)
-        self.__ui.display_message("\n".join(errors))
+        if len(errors) > 0:
+            self.__ui.display_message("\n".join(errors))
         # rescan working dir
         logger.debug('Initiate re-scan of "{}"'.format(str(working_dir)))
         self.__ui.set_working_dir(str(working_dir))
@@ -539,7 +540,8 @@ class Sortingshop():
         errors = list(set(errors))
         for error in errors:
             logger.info(error)
-        self.__ui.display_message("\n".join(errors))
+        if len(errors) > 0:
+            self.__ui.display_message("\n".join(errors))
         self.__ui.display_message("Preparation of all files finished.")
 
 def main():

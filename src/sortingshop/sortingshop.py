@@ -532,8 +532,9 @@ class Sortingshop():
             try:
                 mediafile.prepare(self.__tagsets)
             except FileNotFoundError:
-                errors.append('Could not create a sidecar for {} (no ' +
-                        'metada)'.format(mediafile.get_name()))
+                errors.append(
+                        'Could not create a sidecar for "{}" (no metada)'.format(
+                            mediafile.get_name()))
         # display errors
         errors = list(set(errors))
         for error in errors:

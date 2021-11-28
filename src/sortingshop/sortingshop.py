@@ -529,7 +529,16 @@ class Sortingshop():
         for i in range(self.__medialist.get_number_mediafiles()):
             mediafile = self.__medialist.get_mediafile(i)
             logger.debug('Scanning "{}"'.format(mediafile.get_name()))
-            mediafile.prepare(self.__tagsets)
+            try:
+                mediafile.prepare(self.__tagsets)
+            except FileNotFoundError:
+                errors.append('Could not create a sidecar for {} (no ' +
+                        'metada)'.format(mediafile.get_name()))
+        # display errors
+        errors = list(set(errors))
+        for error in errors:
+            logger.info(error)
+        self.__ui.display_message("\n".join(errors))
         self.__ui.display_message("Preparation of all files finished.")
 
 def main():

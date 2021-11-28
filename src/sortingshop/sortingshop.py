@@ -593,14 +593,10 @@ def main():
     if not args.working_dir == '':
         cfg.set('Paths', 'working_dir', args.working_dir)
 
-    if args.verbosity > 0:
-        log.config['handlers']['console']['level'] = 'DEBUG'
-        log.config['loggers']['__main__']['level'] = 'DEBUG'
-        log.config['loggers']['sortingshop']['level'] = 'DEBUG'
-    else:
-        log.config['handlers']['console']['level'] = 'INFO'
-        log.config['loggers']['__main__']['level'] = 'INFO'
-        log.config['loggers']['sortingshop']['level'] = 'INFO'
+    verbosity = ['ERROR', 'WARNING', 'INFO', 'DEBUG']
+    log.config['handlers']['console']['level'] = verbosity[args.verbosity]
+    log.config['loggers']['__main__']['level'] = verbosity[args.verbosity]
+    log.config['loggers']['sortingshop']['level'] = verbosity[args.verbosity]
 
     logging.config.dictConfig(log.config)
 

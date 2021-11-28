@@ -182,7 +182,8 @@ class UI():
             raise FileNotFoundError
         if not working_dir.is_dir():
             logger.error('Path not a "{}" directory'.format(working_dir))
-            raise NotADirectoryError
+            working_dir = working_dir.parent()
+            #raise NotADirectoryError
         logger.debug('set working_dir: "{}"'.format(str(working_dir)))
         self._working_dir = working_dir
         self.fire_event('set_working_dir', {'working_dir': working_dir})

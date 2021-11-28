@@ -354,7 +354,7 @@ class MetadataSource():
         if not isinstance(target, Path):
             target = Path(target)
 
-        if not str(target).find('\\') and not str(target).find('/'):
+        if str(target).find('\\') == -1 and str(target).find('/') == -1:
             # the target is only a name not a path (can't find "/" or "\")
             # so add the base path, as Path() would interpret it as relative to
             # the current working directory of the filesystem

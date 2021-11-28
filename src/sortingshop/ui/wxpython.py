@@ -34,6 +34,8 @@ class WxPython(ui.UI):
 
     def construct(self):
         """Construct the frame and its layout."""
+        self.register_command('H', 'short', self.display_help,
+                'display this help', 'display this help')
         # the application frame (what you see as a "window")
         self.__frame = wx.Frame(parent=None, id=wx.ID_ANY, title='Sortingshop')
         path = Path(pkg_resources.resource_filename(__name__, 'resources/sosho.ico'))
@@ -134,6 +136,14 @@ class WxPython(ui.UI):
         # resize the frame to show all currently displayed widgets
         self.__frame_sizer.Layout()
         self.__frame.Fit()
+
+    def display_help(self):
+        message = ''
+        for cmd, info in self._short_commands.items():
+            message += cmd + ': ' + info['info'] + "\n"
+        for cmd, info in self._long_commands.items():
+            message += cmd + ' XXX: ' + info['info'] + "\n"
+        self.display_message(message)
 
     def display_tagsets(self, tagsets):
         self.__pages['tag'].load_tagsets(tagsets)

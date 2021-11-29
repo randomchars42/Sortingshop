@@ -387,22 +387,51 @@ class MediaFile(metadatasource.MetadataSource):
             logger.error('no rename_command in config')
             raise ValueError
         commands.append(str(self.get_path()))
-        result = self._exiftool.do(*commands)
+        name = Path(self._exiftool.do(*commands)['new_name'])
 
-        path = self.get_path().parent / result['new_name']
+        # picks the right path whether in working_dir or "deleted"
+        path = self.get_path().parent
 
-        if result['new_name'] == '' or not path.is_file():
+        if name == '' or not name.is_file():
             logger.warning('could not rename file {}'.format(self.get_name()))
             raise FileNotFoundError
-        logger.debug('set name of {} to {}'.format(self.get_name(),
-            result['new_name']))
 
-        self.set_path(path)
+        working_dir = cfg.get('Paths', 'working_dir', default = '')
+        if working_dir == '':
+            raise FileNotFoundError
+
+        logger.debug('set name of {} to {}'.format(self.get_name(), name))
+
+        self.set_path(name)
+
+        if Path(working_dir, name.name).exists() and Path(working_dir, 'deleted', name.name).exists():
+            # if there are now two files with the same name, this one in a
+            # pre-existing 'deleted' directory the other not (or vice-versa)
+            # we need to count this one's name up
+            logger.debug('duplicate filename after renaming ("{}")'.format(
+                name))
+
+            # the counter length
+            length = cfg.get('Renaming', 'counter_length', default = 3,
+                    variable_type = 'int')
+            # does the new name already incorporate a counter
+            has_counter = cfg.get('Renaming', 'mediafile_name_has_counter',
+                    default = False)
+            # if there's a counter in the stem remove it
+            stem = name.stem[:(length+1)*-1] if has_counter else name.stem
+            # test if the name exists in both the "deleted" directory and
+            # the working directory
+            name = self._count_name_up(
+                    cfg.get('Paths', 'working_dir', default=''),
+                    stem, name.suffix, length)
+            logger.debug('renaming "{}" to "{}"'.format(
+                self.get_name(), name))
+            super(MediaFile, self).move(path / name)
 
         for index in range(len(self.__sidecars)):
-            self.__sidecars[index].rename(path)
+            self.__sidecars[index].rename(path / name)
 
-        return path
+        return self.get_path()
 
     def move(self, target):
         """Move the file and its sidecars.

@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 from . import metadatasource
+from .. import config
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +107,10 @@ class Sidecar(metadatasource.MetadataSource):
             proposed = parent_path.name + '.xmp'
         # case 2
         else:
-            proposed = (parent_path.stem + '_' +
-                    self.get_counter(value = False) +
-                    parent_path.suffix + '.xmp')
+            cfg = config.ConfigSingleton()
+            proposed = self._count_name_up(
+                    cfg.get('Paths', 'working_dir', default=''),
+                    parent_path.stem, parent_path.suffix + ".xmp",
+                    cfg.get('Renaming', 'counter_length', default=3, variable_type="int"))
 
         return super(Sidecar, self).rename(proposed)

@@ -86,6 +86,32 @@ class MetadataSource():
                 'counter': counter_string,
                 'counter_length': counter_length}
 
+    def _count_name_up(self, path, stem, suffix, counter_length, counter=1):
+        """Return the first name that does not exist.
+
+        Positional arguments:
+        path -- Path of the working directory
+        stem -- the stem of the filename excluding the counter
+        suffix -- the file suffix(es) like .FORMAT or .FORMAT.xmp
+        counter_length -- length of the counter (typically 2 or 3 digits)
+
+        Keyword arguments:
+        counter -- int, the counter to try
+
+        Return value:
+        the name (without path)
+        """
+        name = '{}_{}{}'.format(stem, str(counter).zfill(counter_length), suffix)
+
+        if path == '':
+            raise FileNotFoundError('No working directory given')
+
+        if Path(path, name).exists() or Path(path, 'deleted', name).exists():
+            return self._count_name_up(path, stem, suffix, counter_length,
+                    counter + 1)
+        else:
+            return name
+
     def _get_before_last_counter(self, name, parts = {}):
         """Return the part before the last counter.
 
@@ -380,7 +406,7 @@ class MetadataSource():
     def rename(self, name=None):
         """Rename the file (keeping the path) and return the new Path.
 
-        Currently same as self.move() but checks of name is not a path.
+        Currently same as self.move() but checks if name is not a path.
 
         Raises
          - ValueError if name is None or is a path (containing "\" or "/"")

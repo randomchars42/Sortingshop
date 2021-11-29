@@ -225,7 +225,7 @@ class MetadataSource():
         """Return the taglist."""
         return self.__taglist
 
-    def toggle_tags(self, tags, tagsets = None, force="neither"):
+    def toggle_tags(self, tags, tagsets = None, force="toggle"):
         """Toggle the tags.
 
         For toggle mechanism see TagList.toggle_tags(). This function only
@@ -245,7 +245,7 @@ class MetadataSource():
             raise FileNotFoundError
 
         tags = self.get_taglist().toggle_tags(tags, tagsets=tagsets,
-            force_all=False, force="in")
+            force_all=False, force=force)
         command = ['-overwrite_original']
         if len(tags['remove']) > 0:
             tags['remove'].sort()

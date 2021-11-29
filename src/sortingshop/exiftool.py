@@ -17,7 +17,7 @@ class ExifTool():
     """A Wrapper around ExifTool-CLI.
 
     Starts an instance of exiftool with stay_open = True, and creates a pipe in
-    and out to communicate. 
+    and out to communicate.
 
     Kudos to Sven Marnach https://stackoverflow.com/questions/10075115
     """

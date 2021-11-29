@@ -124,14 +124,18 @@ class Sortingshop():
             logger.error(error, exc_info=True)
             self.__medialist = None
             return
-        except FileExistsError as error:
+        except FileExistsError:
             # the same media file name is used in working_dir and
             # working_dir/deleted
-            self.__ui.display_message(
+            self.__ui.display_dialog(
                     'File "{}" exists in {} and {}/deleted'.format(
                         self.__medialist.get_duplicate_name(),
+                        params['working_dir'], params['working_dir']),
+                    dialog_type='ok',
+                    callbacks={'ok': lambda: self.__ui.close(True)})
+            logger.error('file "{}" exists in {} and {}/deleted'.format(
+                        self.__medialist.get_duplicate_name(),
                         params['working_dir'], params['working_dir']))
-            logger.error(error, exc_info=True)
             self.__medialist = None
             return
 

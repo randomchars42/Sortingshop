@@ -111,6 +111,10 @@ class WxPython(ui.UI):
         """Run the app's MainLoop."""
         self.__app.MainLoop()
 
+    def close(self, force=True):
+        """Close the app."""
+        self.__frame.Destroy()
+
     def _display_previous_page(self, event):
         """Display the last page.
 

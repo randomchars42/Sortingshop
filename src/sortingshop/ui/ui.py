@@ -100,7 +100,7 @@ class UI():
                 return True
         elif len(raw_command) > 1 and raw_command[-1] == "\n":
             # case 2
-            parts = raw_command.split(' ')
+            parts = raw_command.split(' ',1)
 
             if len(parts) == 1:
                 # missing space between command

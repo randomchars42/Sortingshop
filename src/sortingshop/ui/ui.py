@@ -144,7 +144,10 @@ class UI():
         event -- the event to trigger callback (string)
         callback -- method to call on event
         """
-        self._events[event] = callback
+        try:
+            self._events[event].append(callback)
+        except KeyError:
+            self._events[event] = [callback]
 
     def fire_event(self, event, params={}):
         """Call callback for event.
@@ -159,7 +162,8 @@ class UI():
         """
         try:
             logger.debug('fire event: {}'.format(event))
-            self._events[event](params)
+            for callback in self._events[event]:
+                callback(params)
         except KeyError as error:
             raise ValueError('No listeners for event ("{}")'.format(event))
 

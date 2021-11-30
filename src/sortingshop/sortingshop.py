@@ -311,8 +311,10 @@ class Sortingshop():
         The user may input a list of tags and or abbreviations which will be
         expanded with the help of tagsets.
         """
+        tags = [tag.strip() for tag in user_input.split(',')]
+        tags = list(filter(None, tags))
         try:
-            self.__current_source.toggle_tags(user_input, self.__tagsets)
+            self.__current_source.toggle_tags(tags, self.__tagsets)
         except ChildProcessError:
             self.__ui.display_message('Tags were not updated.')
         except FileNotFoundError:
@@ -357,16 +359,14 @@ class Sortingshop():
         Positional arguments:
         to -- index (int) or name (str)
         """
-        to = ','.join(to)
         try:
             to = int(to)
-            self.load_mediafile(to)
         except ValueError:
             try:
                 to = self.__medialist.get_mediafile_index(to)
             except FileNotFoundError:
                 self.__ui.display_message('No such file.')
-            self.load_mediafile(to)
+        self.load_mediafile(to)
 
     def rotate(self, direction='cw'):
         """Rotate by setting the exif flag.

@@ -117,18 +117,17 @@ class UI():
 
             logger.debug('Command "{}" finished'.format(raw_command.strip()))
             # extract arguments
-            arguments = [arg.strip() for arg in parts[1].split(',')]
-            arguments = list(filter(None, arguments))
+            arguments = parts[1].strip()
 
-            if len(arguments) == 0:
+            if arguments == '':
                 logger.debug('No valid arguments in ("{}"), dropped'.format(
-                    parts[1]))
+                    arguments))
                 # drop
                 return True
 
             # call
             logger.debug('Command "{}" called with arguments: {}'.format(
-                command, ','.join(arguments)))
+                command, arguments))
             self._long_commands[command]['callback'](arguments)
             return True
         else:

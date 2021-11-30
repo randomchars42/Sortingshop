@@ -35,6 +35,7 @@ class Sortingshop():
         self.__medialist = medialist.MediaList()
         self.__current_mediafile = None
         self.__current_source = None
+        self.__last_tags = []
 
     def run(self):
         """Do"""
@@ -63,6 +64,8 @@ class Sortingshop():
         self.__ui.register_command('t', 'long', self.toggle_tags,
                 'toggle TAG1,TAG2', 'sets the tag if it is not present, else ' +
                 'removes it')
+        self.__ui.register_command('.', 'short', lambda: self.toggle_tags('.'),
+                'toggle the last used tags', 'toggle the previous set of tags')
         self.__ui.register_command('d', 'short', self.toggle_deleted,
                 'delete / undelete mediafile', 'moves the mediafile to ' +
                 '"./deleted/" or back')
@@ -92,8 +95,8 @@ class Sortingshop():
         self.__ui.register_command(':', 'long', self.jump,
                 'load mediafile', 'load the mediafile with the given ' +
                 'index or name')
-        #self.__ui.register_command('.', 'long', self.load_source,
-        #        'load sourcefile', 'load the sourcefile with the given name')
+        self.__ui.register_command('s', 'long', self.load_source,
+                'load sourcefile', 'load the sourcefile with the given name')
 
         cfg = config.ConfigSingleton()
         working_dir = cfg.get('Paths', 'working_dir', default='')
@@ -302,8 +305,13 @@ class Sortingshop():
         The user may input a list of tags and or abbreviations which will be
         expanded with the help of tagsets.
         """
-        tags = [tag.strip() for tag in user_input.split(',')]
-        tags = list(filter(None, tags))
+        if user_input == '.':
+            tags = self.__last_tags
+        else:
+            tags = [tag.strip() for tag in user_input.split(',')]
+            tags = list(filter(None, tags))
+            self.__last_tags = tags
+
         try:
             self.__current_source.toggle_tags(tags, self.__tagsets)
         except ChildProcessError:

@@ -112,9 +112,9 @@ There's a special tagset called `ALL_PICTURES`. Those tags will be applied to th
 
 ### Configuration
 
-The [configuration](../blob/master/src/sortingshop/settings/config.ini) looks like this:
+The [configuration](../master/src/sortingshop/settings/config.ini) looks like this:
 
-```
+```ini
 [Paths]
 ; if you want to start with the same directory every time enter it here
 working_dir =

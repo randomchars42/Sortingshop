@@ -246,6 +246,19 @@ class MediaList():
         # add 1 for the user so it doesn't start with 0
         return self.__current + 1
 
+    def get_mediafile_index(self, name):
+        """Return the index of the mediafile.
+
+        Raises FileNotFoundError if no file was found.
+
+        Positional arguments:
+        name -- the name to search for
+        """
+        for index, mediafile in enumerate(self.__mediafiles):
+            if mediafile.get_name() == name:
+                return index + 1
+        raise FileNotFoundError('No such file in medialist')
+
     def get_mediafile(self, position):
         """Return the MediaFile at the requested position.
 
@@ -316,5 +329,5 @@ class MediaList():
         return self.__mediafiles[self.__current]
 
     def get_mediafiles(self):
-        """Return list of mediafiles.""Return list of mediafiles."""
+        """Return list of mediafiles."""
         return self.__mediafiles

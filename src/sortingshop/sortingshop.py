@@ -89,10 +89,11 @@ class Sortingshop():
                 'rating: 4', 'rate the mediafile as a 4')
         self.__ui.register_command('5', 'short', lambda: self.set_rating(5),
                 'rating: 5', 'rate the mediafile as a 5')
-        self.__ui.register_command(':', 'long', self.load_mediafile,
-                'load mediafile', 'load the mediafile with the given index')
-        self.__ui.register_command('.', 'long', self.load_source,
-                'load sourcefile', 'load the sourcefile with the given name')
+        self.__ui.register_command(':', 'long', self.jump,
+                'load mediafile', 'load the mediafile with the given ' +
+                'index or name')
+        #self.__ui.register_command('.', 'long', self.load_source,
+        #        'load sourcefile', 'load the sourcefile with the given name')
 
         cfg = config.ConfigSingleton()
         working_dir = cfg.get('Paths', 'working_dir', default='')
@@ -349,6 +350,23 @@ class Sortingshop():
         self.__ui.display_info({'Rating':
             self.__current_source.get_metadata().get('Rating', 0)})
         self.__ui.display_metadata(self.__current_source.get_metadata())
+
+    def jump(self, to):
+        """Jump to mediafile NUMBER / NAME.
+
+        Positional arguments:
+        to -- index (int) or name (str)
+        """
+        to = ','.join(to)
+        try:
+            to = int(to)
+            self.load_mediafile(to)
+        except ValueError:
+            try:
+                to = self.__medialist.get_mediafile_index(to)
+            except FileNotFoundError:
+                self.__ui.display_message('No such file.')
+            self.load_mediafile(to)
 
     def rotate(self, direction='cw'):
         """Rotate by setting the exif flag.

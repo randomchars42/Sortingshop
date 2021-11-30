@@ -343,8 +343,10 @@ class MediaFile(metadatasource.MetadataSource):
         # of use_sidecar
         if apply_default_tagset and not tagsets is None:
             logger.debug('applying default tags')
-            self.get_primary_source().toggle_tags(
-                ['ALL_PICTURES'], tagsets=tagsets, force="in")
+            default_tagset = tagset.get_default_tagset()
+            if len(default_tagset) > 0:
+                self.get_primary_source().toggle_tags(default_tagset,
+                        tagsets=tagsets, force="in")
         self.__is_prepared = True
 
     def load(self):

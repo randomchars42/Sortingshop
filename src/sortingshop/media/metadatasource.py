@@ -269,6 +269,8 @@ class MetadataSource():
         if not self.exists():
             logger.error('file "{}" not found'.format(str(self.get_path())))
             raise FileNotFoundError
+        if len(tags) == 0:
+            return self.get_taglist()
 
         tags = self.get_taglist().toggle_tags(tags, tagsets=tagsets,
             force_all=False, force=force)

@@ -93,6 +93,22 @@ class WxPython(ui.UI):
         tag_page.set_source_picker_action(
                 lambda event: self.fire_event('source_change',
                     {'name': event.GetString()}))
+        tag_page.bind_to_button('update_local', lambda event: self.fire_event(
+            'update_tagsets',
+            {'origin': 'local',
+                'text': self.__pages['tag'].get_tagsets('local')}))
+        tag_page.bind_to_button('update_global', lambda event: self.fire_event(
+            'update_tagsets',
+            {'origin': 'global',
+                'text': self.__pages['tag'].get_tagsets('global')}))
+        tag_page.bind_to_button('save_local', lambda event: self.fire_event(
+            'save_tagsets',
+            {'origin': 'local',
+                'text': self.__pages['tag'].get_tagsets('local')}))
+        tag_page.bind_to_button('save_global', lambda event: self.fire_event(
+            'save_tagsets',
+            {'origin': 'global',
+                'text': self.__pages['tag'].get_tagsets('global')}))
 
         # prepare for display
 
@@ -150,8 +166,8 @@ class WxPython(ui.UI):
             message += cmd + ' XXX: ' + info['info'] + "\n"
         self.display_message(message)
 
-    def display_tagsets(self, tagsets):
-        self.__pages['tag'].load_tagsets(tagsets)
+    def display_tagsets(self, origin, tagsets):
+        self.__pages['tag'].load_tagsets(origin, tagsets)
 
     def display_shortcuts(self, shortcuts):
         raise NotImplementedError('method "display_shortcuts" not implemented')
@@ -287,13 +303,13 @@ class Page(wx.Panel):
         self.__bar_sizer = wx.BoxSizer(wx.HORIZONTAL)
         master_sizer.Add(self.__bar_sizer, flag=wx.ALIGN_RIGHT, proportion=0)
 
-        self.__buttons = {}
+        self._buttons = {}
 
         if not callback_on_back is None:
             button_back = wx.Button(parent=self, label='Back')
             button_back.Bind(event=wx.EVT_BUTTON, handler=callback_on_back)
             self.__bar_sizer.Add(button_back)
-            self.__buttons['back'] = button_back
+            self._buttons['back'] = button_back
 
     def show_page(self):
         """Extensible wrapper around window.Show."""
@@ -302,6 +318,17 @@ class Page(wx.Panel):
     def hide_page(self):
         """Extensible wrapper around window.Hide."""
         self.Hide()
+
+    def bind_to_button(self, button, callback):
+        """Bind a callback to a button on this page.
+
+        Positional arguments:
+        button -- the name of the button (string)
+        callback -- function to call
+        """
+        if not button in self._buttons:
+            raise ValueError('No such button ("{}")'.format(button))
+        self._buttons[button].Bind(event=wx.EVT_BUTTON, handler=callback)
 
 class HomePage(Page):
     """ The entry page lets the user choose the directory and what to do."""
@@ -319,38 +346,25 @@ class HomePage(Page):
         # center buttons vertically
         self._sizer.AddStretchSpacer(prop=1)
 
-        self.__buttons = {}
-
         self.__dir_picker = wx.DirPickerCtrl(parent=self, path=str(Path.home()),
               message='Choose a directory',
               style=wx.DIRP_DIR_MUST_EXIST|wx.DIRP_SMALL|wx.DIRP_USE_TEXTCTRL)
         self._sizer.Add(self.__dir_picker, flag=wx.EXPAND)
 
-        self.__buttons['prepare'] = wx.Button(parent=self,
+        self._buttons['prepare'] = wx.Button(parent=self,
                 label='Prepare mediafiles (e.g. rename, prune)')
-        self._sizer.Add(self.__buttons['prepare'], flag=wx.EXPAND)
+        self._sizer.Add(self._buttons['prepare'], flag=wx.EXPAND)
 
-        self.__buttons['tag'] = wx.Button(parent=self,
+        self._buttons['tag'] = wx.Button(parent=self,
                 label='Start taggging files')
-        self._sizer.Add(self.__buttons['tag'], flag=wx.EXPAND)
+        self._sizer.Add(self._buttons['tag'], flag=wx.EXPAND)
 
-        self.__buttons['sort'] = wx.Button(parent=self,
+        self._buttons['sort'] = wx.Button(parent=self,
                 label='Sort mediafiles by tags')
-        self._sizer.Add(self.__buttons['sort'], flag=wx.EXPAND)
+        self._sizer.Add(self._buttons['sort'], flag=wx.EXPAND)
 
         # center buttons vertically
         self._sizer.AddStretchSpacer(prop=1)
-
-    def bind_to_button(self, button, callback):
-        """Bind a callback to a button on this page.
-
-        Positional arguments:
-        button -- the name of the button (string)
-        callback -- function to call
-        """
-        if not button in self.__buttons:
-            raise ValueError('No such button ("{}")'.format(button))
-        self.__buttons[button].Bind(event=wx.EVT_BUTTON, handler=callback)
 
     def bind_to_dir_picker(self, callback):
         """Bind a callback to the directory picker on this page.
@@ -430,9 +444,32 @@ class TagPage(Page):
         # column 3
 
         # tagsets
-        self.__tagsets = wx.TextCtrl(self, id=wx.ID_ANY,
-                style=wx.TE_READONLY|wx.TE_MULTILINE)
-        self.__column_3.Add(self.__tagsets, flag=wx.EXPAND, proportion=1)
+        self._tagsets = {}
+
+        self._tagsets['local'] = wx.TextCtrl(self, id=wx.ID_ANY,
+                style=wx.TE_MULTILINE)
+        self.__column_3.Add(self._tagsets['local'], flag=wx.EXPAND, proportion=1)
+
+        self._buttons['update_local'] = wx.Button(parent=self,
+                label='Update local taglists')
+        self.__column_3.Add(self._buttons['update_local'], flag=wx.EXPAND)
+
+        self._buttons['save_local'] = wx.Button(parent=self,
+                label='Save local taglists')
+        self.__column_3.Add(self._buttons['save_local'], flag=wx.EXPAND)
+
+        self._tagsets['global'] = wx.TextCtrl(self, id=wx.ID_ANY,
+                style=wx.TE_MULTILINE)
+        self.__column_3.Add(self._tagsets['global'], flag=wx.EXPAND, proportion=2)
+
+        self._buttons['update_global'] = wx.Button(parent=self,
+                label='Update global taglists')
+        self.__column_3.Add(self._buttons['update_global'], flag=wx.EXPAND)
+
+        self._buttons['save_global'] = wx.Button(parent=self,
+                label='Save global taglists')
+        self.__column_3.Add(self._buttons['save_global'], flag=wx.EXPAND)
+
 
         # column 4
 
@@ -510,17 +547,26 @@ class TagPage(Page):
         self.Refresh()
         self._sizer.Layout()
 
-    def load_tagsets(self, tagsets):
+    def load_tagsets(self, origin, tagsets):
         """Set the text of the tagsets widget.
 
         Positional arguments:
+        origin -- the origin ("local"|"global")
         tagsets -- dict returned by media.tagsets.Tagsets.get_tagsets()
         """
         text = ''
 
         for abbr, tags in tagsets.items():
-            text += "{}: {}\n".format(abbr, ','.join(tags))
-        self.__tagsets.SetValue(text)
+            text += "{} {}\n".format(abbr, ','.join(tags))
+        self._tagsets[origin].SetValue(text)
+
+    def get_tagsets(self, origin):
+        """Get the text of the tagset widget
+
+        Positional arguments:
+        origin -- the origin ("local"|"global")
+        """
+        return self._tagsets[origin].GetValue()
 
     def _format_rating_as_unicode(self, rating):
         """Format XMP:Rating (-1 [rejected], 0 - 5) as stars."""

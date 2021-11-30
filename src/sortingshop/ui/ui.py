@@ -197,7 +197,7 @@ class UI():
     def run(self):
         raise NotImplementedError('method "run" not implemented')
 
-    def display_tagsets(self, tagsets):
+    def display_tagsets(self, origin, tagsets):
         raise NotImplementedError('method "display_tagsets" not implemented')
 
     def display_shortcuts(self, shortcuts):

@@ -26,7 +26,7 @@ class Sortingshop():
     def __init__(self, options = []):
         """Initialise UI ... ."""
         self.__ui = wxpython.WxPython()
-        self.__tagsets = tagsets.Tagsets()
+        self.__tagsets = tagsets.Tagsets(self.__ui)
         self._reset()
         logger.info('initialised')
 
@@ -140,20 +140,11 @@ class Sortingshop():
             self.__medialist = None
             return
 
-        # load tagsets
-        try:
-            self.__tagsets.load_tagsets()
-        except PermissionError as error:
-            self.__ui.display_message(
-                    'Insufficient rights to open tagsets file')
-            logger.error(error, exc_info=True)
-
         message = 'working directory loaded, found {} mediafiles'.format(
             self.__medialist.get_number_mediafiles())
         logger.debug(message)
         self.__ui.display_message(message)
 
-        self.__ui.display_tagsets(self.__tagsets.get_tagsets())
 
     def on_begin_tagging(self):
         cfg = config.ConfigSingleton()

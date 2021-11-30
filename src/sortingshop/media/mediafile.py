@@ -341,7 +341,7 @@ class MediaFile(metadatasource.MetadataSource):
 
         # this can only happen if a sidecar has already been created in case
         # of use_sidecar
-        if apply_default_tagset and not tagsets is None and tagsets.has_default_tagset():
+        if apply_default_tagset and not tagsets is None:
             logger.debug('applying default tags')
             self.get_primary_source().toggle_tags(
                 ['ALL_PICTURES'], tagsets=tagsets, force="in")

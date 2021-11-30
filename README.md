@@ -188,7 +188,7 @@ sorting_tag_regex = .*([0-9]{4} [^\/\\]+).*
 sorting_tag_sub = \g<1>
 ```
 
-Be sure to tweak it to your liking.
+Be sure to tweak it to your liking and store it in `~/.config/sortingshop/config.ini`.
 
 ### Give me more technicalities
 

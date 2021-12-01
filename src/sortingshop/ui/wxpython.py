@@ -214,6 +214,8 @@ class WxPython(ui.UI):
         self.__metadata['date'] = metadata.get('CreateDate',
                 self.__metadata['date'])
         self.__pages['tag'].load_info(self.__metadata)
+        # layout to center because wx.ST_NO_AUTORESIZE does not seem to work in 4.1 anymore
+        self.__frame.Layout()
 
     def display_tags(self, taglist):
         self.__pages['tag'].load_tags(taglist)
@@ -421,7 +423,7 @@ class TagPage(Page):
 
         # metadata
         self.__info_panel = wx.StaticText(self, id=wx.ID_ANY,
-                style=wx.ST_NO_AUTORESIZE|wx.ALIGN_CENTRE_HORIZONTAL)
+                style=wx.ALIGN_CENTRE_HORIZONTAL)#|wx.ST_NO_AUTORESIZE)
         self.__column_1.Add(self.__info_panel, flag=wx.EXPAND, proportion=0)
 
         # column 2
@@ -592,12 +594,12 @@ class TagPage(Page):
         metadata -- dict of available metadata to display
         """
         text = ''
-        text += str(metadata['index']) + '/' + str(metadata['n']) + "\n"
+        text += str(metadata['index']) + '/' + str(metadata['n']) + '\n'
         text += metadata['name']
-        text += (' (DELETED)' if metadata['deleted'] else '' ) + "\n"
+        text += (' (DELETED)' if metadata['deleted'] else '' ) + '\n'
         text += metadata['date'] + "\n"
-        text += self._format_rating_as_unicode(metadata['rating']) #+ "\n"
-        self.__info_panel.SetLabel(text)
+        text += self._format_rating_as_unicode(metadata['rating'])
+        self.__info_panel.SetLabelText(text)
 
     def load_metadata(self, metadata):
         """Set the text of the metadata widget.

@@ -49,6 +49,6 @@ setup(
         'wxPython>=4.0'
     ],
     entry_points={
-        'console_scripts':['main=sortingshop.sortingshop:main']
+        'console_scripts':['SortingShop=sortingshop.sortingshop:main','sortingshop=sortingshop.sortingshop:main']
     }
 )

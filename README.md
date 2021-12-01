@@ -1,8 +1,8 @@
 # SortingShop
 
-... to sort your 1,000,000 photos, taken to be marveled at again.
+... to sort your 1,000,000 photos taken to be marveled at again.
 
-The aim is to make tagging and sorting as fast and efficient as possible. [No need to take your hands of the keyboard](#how)!
+The aim is to make tagging and sorting as fast and efficient as possible. [No need to take your hands off the keyboard](#how)!
 
 ## What happens
 
@@ -14,7 +14,7 @@ The aim is to make tagging and sorting as fast and efficient as possible. [No ne
   * Certain metadata may\* be removed.
 3. You may press "Start tagging files" and you'll be shown each file in turn so you can add or remove tags and ratings or mark the file for removal\*\*.
 
-   While you work your way through your collection every file you encounter may be renamed, have a sidecar created, tags added and metadata removed\*.
+   While you work your way through your collection every file you encounter may be renamed, have a sidecar created, tags added and / or metadata removed\*.
 
 4. When you're finished you may hit "Sort mediafiles by tags" and your files will be sorted by a tag\*\*\* you have added.
 
@@ -198,19 +198,18 @@ Be sure to tweak it to your liking and store it in `~/.config/sortingshop/config
 
 ## Installation
 
-At the moment there's no way to "install" `SortingShop` (distribution via pip / pipx is underway). You need to download the files and run the programme, e.g. like:
+`SortingShop` can be found on and installed from PyPI: <https://pypi.org/project/SortingShop>
 
-```
-$ cd /path/to/code/SortingShop/src
-$ python3 -m sortingshop.sortingshop
-```
+Install it via `pip`:
 
-Or create an alias in your `.bash_aliases` to make life easier:
-
-```
-alias sortingshop="PYTHONPATH=$PYTHONPATH:/path/to/code/SortingShop/src python3 -m sortingshop.sortingshop -d "'"$(pwd)"'
+```bash
+pip install SortingShop
 ```
 
-**And don't forget** to replace `/path/to/code`!
+or `pipx` ([What's that?](https://pypa.github.io/pipx/)):
 
-You'll need to have [ExifTool](https://www.exiftool.org) and [wxPython](https://pypi.org/project/wxPython/) > 4.0.1 installed. And, of course, Python > 3.6.
+```bash
+pipx install SortingShop
+```
+
+You'll need to have [ExifTool](https://www.exiftool.org) installed. And, of course, Python > 3.6.

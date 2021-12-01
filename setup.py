@@ -7,7 +7,7 @@ path = pathlib.Path(__file__).parent.resolve()
 
 setup(
     name='SortingShop',
-    version='1.0.0',
+    version='1.0.1',
     description='Sort your pictures!',
     long_description = (path / 'README.md').read_text(encoding='utf-8'),
     long_description_content_type="text/markdown",

@@ -87,7 +87,7 @@ class Tagsets():
                 continue
             path = str(Path(path).expanduser())
             try:
-                self.__tagsets[origin] = self._load_file(path)
+                self.__tagsets[origin] = self._load_file(path, origin)
                 logger.info('tagsets loaded from "{}"'.format(path))
             except FileNotFoundError:
                 logger.info('could not open file "{}"'.format(path))
@@ -99,7 +99,7 @@ class Tagsets():
         self.__ui.display_tagsets('local', self.get_tagsets('local'))
         self.__ui.display_tagsets('global', self.get_tagsets('global'))
 
-    def _load_file(self, path):
+    def _load_file(self, path, origin):
         """Load file from given path and return a dict.
 
         Returns a dict with the abbreviation as key and the associated tags as a
@@ -112,6 +112,7 @@ class Tagsets():
 
         Positional arguments:
         path - string with the path of the file to load
+        origin -- the origin of the text (filename or text)
         """
         if not isinstance(path, str) or path == '':
             logger.error('bad path ("{}")'.format(str(path)))
@@ -123,9 +124,9 @@ class Tagsets():
         if path.is_dir():
             raise FileNotFoundError
 
-        return self._parse_text(path.read_text())
+        return self._parse_text(path.read_text(), origin)
 
-    def _parse_text(self, text, origin='tagsets list'):
+    def _parse_text(self, text, origin=''):
         """Parse a text into a taglist.
 
         Positional arguments:

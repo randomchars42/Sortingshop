@@ -7,7 +7,8 @@ __pycache__
 *.egg-info
 .eggs
 /build
-/venv
+/.venv
+Pipfile.lock
 
 # Vim
 *.sw[op]

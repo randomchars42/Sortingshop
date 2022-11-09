@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+sortingshop = {editable = true, path = "."}
+attrdict3 = "*"
+wxpython = "*"
+
+[dev-packages]
+build = "*"
+twine = "*"
+types-setuptools = "*"
+types-pkg-resources = "*"

@@ -543,7 +543,7 @@ class TagPage(Page):
         else:
             width = self.__max_size * width / height
             height = self.__max_size
-        image = image.Scale(width, height)
+        image = image.Scale(int(width), int(height))
 
         self.__image.SetBitmap(wx.Bitmap(image))
         self.Refresh()

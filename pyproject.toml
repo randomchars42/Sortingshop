@@ -1,7 +1,7 @@
 # pyproject.toml
 [project]
 name = 'sortingshop'
-version = '1.1.0'
+version = '1.1.1'
 description = ''
 readme = 'README.md'
 requires-python = '>=3.6'
@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     'attrdict3',
-    'wxPython~=4.2.0'
+    'wxpython~=4.2.0'
 ]
 
 [project.urls]
